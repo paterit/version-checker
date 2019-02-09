@@ -5,7 +5,7 @@ RUN echo "http://dl-4.alpinelinux.org/alpine/v3.8/main" >> /etc/apk/repositories
     echo "http://dl-4.alpinelinux.org/alpine/v3.8/community" >> /etc/apk/repositories
 
 RUN apk update
-RUN apk add bash chromium chromium-chromedriver
+RUN apk add bash
 
 RUN pip install pipenv
 
