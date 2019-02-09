@@ -3,7 +3,13 @@ Feature: Verify if there are new version of docker image
   As a maintainer
   I want to verify if new version of docker image is avialble
 
-  Scenario: Check new version of docker image
-    Given Docker image name "glances" and version "v2.0.0" as parameters
+  Scenario Outline: Check new version of docker image
+    Given Docker image name <component> and <version> as parameters
     When check version script is run
-    Then there is "new version found" in response
+    Then there is <response> in response
+
+
+  Examples: Docker images versions
+     | component | version | response |
+     | glances   | v2.0.0  | new version found |
+     | glances   | v100.0.0 | no newer version found |

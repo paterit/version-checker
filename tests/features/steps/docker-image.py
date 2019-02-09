@@ -6,9 +6,9 @@ RET_CODE_SUCCESS = 0
 python = local["python"]
 
 
-@given(u'Docker image name "{name}" and version "{version}" as parameters')
-def step_impl(context, name, version):
-    context.docker_image["param"] = name
+@given(u"Docker image name {component} and {version} as parameters")
+def step_impl(context, component, version):
+    context.docker_image["param"] = component
     context.docker_image["version"] = version
 
 
@@ -23,6 +23,9 @@ def step_impl(context):
     context.response = ret[1]
 
 
-@then(u'there is "{text}" in response')
-def step_impl(context, text):
-    assert text in context.response, "%r is not found in %r" % (text, context.response)
+@then(u"there is {response} in response")
+def step_impl(context, response):
+    assert response in context.response, "%r is not found in %r" % (
+        response,
+        context.response,
+    )
