@@ -6,9 +6,9 @@ build:
 shell:
 	@docker exec -it -w `pwd` version-checker bash
 run:
-	@docker exec -it -w `pwd` version-checker pipenv run python script.py
+	@docker exec -it -w `pwd` version-checker pipenv run python check-version.py
 sbe:
-	@docker exec -it -w `pwd` version-checker pipenv run behave tests/features
+	@docker exec -it -w `pwd` version-checker pipenv run behave --tags=-skip --no-skipped tests/features
 
 black: 
 	@docker exec -it -w `pwd` version-checker pipenv run black .

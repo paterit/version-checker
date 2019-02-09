@@ -3,20 +3,8 @@ Feature: Verify if there are new version of docker image
   As a maintainer
   I want to verify if new version of docker image is avialble
 
+  @wip
   Scenario: Check new version of docker image
-    Given Current version and name of the docker image
-    When API to docker repository is called
-    Then newest version is returned
-
-  Scenario: Check new version of docker image with filter
-    Given Current version and name of the docker image
-      and filter for version as a regular experssion
-    When API to docker repository is called
-    Then new version is returned that fit to filter
-
-
-  Scenario: Check new version of docker image with exclusions
-    Given Current version and name of the docker image
-      and a list of excluded versions si given
-    When API to docker repository is called
-    Then new version is returned that not exits in excluded list
+    Given Docker image name "glances" and version "v.2.0.0" as parameters
+    When check version script is run
+    Then there is "new version found" in response
