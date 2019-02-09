@@ -6,11 +6,11 @@ build:
 shell:
 	@docker exec -it -w `pwd` version-checker bash
 run:
-	@docker exec -it -w `pwd` version-checker pipenv run python check-version.py
+	@docker exec -it -w `pwd` version-checker pipenv run python check_version.py
 sbe:
 	@docker exec -it -w `pwd` version-checker pipenv run behave --tags=-skip --no-skipped tests/features
 pytest:
-	@docker exec -it -w `pwd` version-checker pipenv run pytest
+	@docker exec -it -w `pwd` version-checker pipenv run python -m pytest --disable-warnings
 black: 
 	@docker exec -it -w `pwd` version-checker pipenv run black .
 test:
@@ -22,7 +22,10 @@ subl-anaconda-docker:
 	# make sure ~/.config/sublime-text-3/Packages/Anaconda/anaconda_server/docker/start has +x flag set (executable script)
 	docker run -d --rm -p 19360:19360 --name version-checker \
 			-v ~/.config/sublime-text-3/Packages/Anaconda:/opt/anaconda \
-			-v `pwd`:`pwd` paterit/version-checker \
+			-v `pwd`:`pwd` \
+			-w `pwd` \
+			-e "PYTHONPATH=`pwd`" \
+			paterit/version-checker \
 			/opt/anaconda/anaconda_server/docker/start `pwd`/.venv/bin/python 19360 starter
 
 
@@ -33,4 +36,5 @@ pipenv-chown:
 	sudo chown $(USER):$(USER) -R .venv/ Pipfile Pipfile.lock
 pipenv-install:
 	docker exec -it -w `pwd` version-checker pipenv install -d
+
 

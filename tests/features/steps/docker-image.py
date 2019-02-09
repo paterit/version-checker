@@ -6,17 +6,19 @@ RET_CODE_SUCCESS = 0
 python = local["python"]
 
 
-@given(u"Docker image name {component} and {version} as parameters")
-def step_impl(context, component, version):
+@given(u"Docker image name {repo_name}/{component} and {version} as parameters")
+def step_impl(context, repo_name, component, version):
     context.docker_image["param"] = component
+    context.docker_image["repo_name"] = repo_name
     context.docker_image["version"] = version
 
 
 @when(u"check version script is run")
 def step_impl(context):
     ret = python[
-        "check-version.py",
+        "check_version.py",
         context.docker_image["param"],
+        context.docker_image["repo_name"],
         context.docker_image["version"],
     ].run(retcode=None)
     assert ret[0] == RET_CODE_SUCCESS, ret
