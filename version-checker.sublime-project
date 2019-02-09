@@ -17,7 +17,7 @@
 	"settings":
 	{
 		"validate_imports": true,
-		"complete_parameters": true,
+		"complete_parameters": false,
 		"display_signatures": true,
 		"enable_signatures_tooltip": true,
 		"merge_signatures_and_doc": true,
