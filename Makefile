@@ -9,9 +9,13 @@ run:
 	@docker exec -it -w `pwd` version-checker pipenv run python check-version.py
 sbe:
 	@docker exec -it -w `pwd` version-checker pipenv run behave --tags=-skip --no-skipped tests/features
-
+pytest:
+	@docker exec -it -w `pwd` version-checker pipenv run pytest
 black: 
 	@docker exec -it -w `pwd` version-checker pipenv run black .
+test:
+	make pytest
+	make sbe
 
 
 subl-anaconda-docker:
