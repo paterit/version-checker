@@ -16,7 +16,7 @@ packaging= "==18.0"
 plumbum= "==1.6.7"
 cachier= "==1.2.4"
 python-rex= "==0.4"
-pymongo= "==3.7.2"
+pymongo= "==3.7.2" # to avoid warnings from cachier althouh not needed really
 
 [requires]
 python_version = "3.7"
