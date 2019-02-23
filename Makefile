@@ -8,9 +8,11 @@ shell:
 run:
 	@docker exec -it -w `pwd` version-checker pipenv run python check_version.py
 sbe:
-	@docker exec -it -w `pwd` version-checker pipenv run behave --tags=-skip --no-skipped tests/features
+	@docker exec -it -w `pwd` version-checker pipenv run behave --tags=-skip --stop --no-skipped tests/features
 pytest:
-	@docker exec -it -w `pwd` version-checker pipenv run python -m pytest --disable-warnings
+	@docker exec -it -w `pwd` version-checker pipenv run python -m pytest --disable-warnings -v
+pytest-help:
+	@docker exec -it -w `pwd` version-checker pipenv run python -m pytest --help
 black: 
 	@docker exec -it -w `pwd` version-checker pipenv run black .
 test:

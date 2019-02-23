@@ -1,0 +1,6 @@
+glances:
+  current_version: v2.11.1
+  docker-repo: nicolargo
+logspout:
+  current_version: v3.1
+  docker-repo: gliderlabs

@@ -21,12 +21,12 @@ def step_impl(context):
         context.docker_image["repo_name"],
         context.docker_image["version"],
     ].run(retcode=None)
-    context.response = "SUCCESS" if int(ret[0]) == 0 else "ERROR"
+    context.response = ret[1]
 
 
 @then(u"there is {response} in response")
 def step_impl(context, response):
-    assert response == context.response, "%r is not found in %r" % (
+    assert response in context.response, "%r is not found in %r" % (
         response,
         context.response,
     )

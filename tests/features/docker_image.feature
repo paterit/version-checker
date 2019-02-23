@@ -11,5 +11,5 @@ Feature: Verify if there are new version of docker image
 
   Examples: Docker images versions
      | repo_name | component | version | response |
-     | nicolargo | glances   | v2.0.0  | SUCCESS |
-     | nicolargo | glances   | v100.0.0 | ERROR |
+     | nicolargo | glances   | v2.0.0  | 1 components to update|
+     | nicolargo | glances   | v100.0.0 | 0 components to update |

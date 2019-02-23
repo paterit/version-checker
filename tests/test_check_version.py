@@ -1,5 +1,7 @@
 from packaging.version import parse
-from check_version import fetch_versions, ComponentChecker
+from check_version import fetch_versions, Component, ComponentsConfig
+import pytest
+import yaml
 
 
 def compare_versions(old, new):
@@ -43,7 +45,29 @@ def test_fetch_versions_no_repo():
 
 
 def test_component_checker_newer_version():
-    checker = ComponentChecker("nicolargo", "glances", "v2.0.0")
+    checker = Component("nicolargo", "glances", "v2.0.0")
     assert checker.check() is True
-    checker = ComponentChecker("nicolargo", "glances", "v100.0.0")
+    checker = Component("nicolargo", "glances", "v100.0.0")
     assert checker.check() is False
+
+
+def test_components_list_write_read_yaml_file():
+    config = ComponentsConfig()
+    config.add(Component("nicolargo", "glances", "v2.11.1"))
+    config.add(Component("gliderlabs", "logspout", "v3.1"))
+    dict1 = config.components_to_dict()
+    config.save_to_yaml()
+    config.read_from_yaml()
+    dict2 = config.components_to_dict()
+    assert dict1 == dict2
+
+
+def test_components_to_dict():
+    config = ComponentsConfig()
+    config.add(Component("nicolargo", "glances", "v2.11.1"))
+    config.add(Component("gliderlabs", "logspout", "v3.1"))
+    result = {
+        "glances": {"current_version": "v2.11.1", "docker-repo": "nicolargo"},
+        "logspout": {"current_version": "v3.1", "docker-repo": "gliderlabs"},
+    }
+    assert result == config.components_to_dict()
