@@ -4,9 +4,10 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-black = "==18.6b4"
+black = "==18.6b4" # higher versions fail during installation
 ipdb = "==0.11"
 pytest= "==4.0.2"
+pytest-datafiles= "==2.0"
 
 [packages]
 loguru = "==0.2.5"
@@ -17,6 +18,7 @@ plumbum= "==1.6.7"
 cachier= "==1.2.4"
 python-rex= "==0.4"
 pymongo= "==3.7.2" # to avoid warnings from cachier althouh not needed really
+click= "==7.0"
 
 [requires]
 python_version = "3.7"

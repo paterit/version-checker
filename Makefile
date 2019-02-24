@@ -10,7 +10,7 @@ run:
 sbe:
 	@docker exec -it -w `pwd` version-checker pipenv run behave --tags=-skip --stop --no-skipped tests/features
 pytest:
-	@docker exec -it -w `pwd` version-checker pipenv run python -m pytest --disable-warnings -v
+	@docker exec -it -w `pwd` version-checker pipenv run python -m pytest --disable-warnings -vv
 pytest-help:
 	@docker exec -it -w `pwd` version-checker pipenv run python -m pytest --help
 black: 

@@ -1,20 +1,19 @@
-import sys
 from loguru import logger
 from packaging.version import parse
 import requests
 from cachier import cachier
 import datetime
 import yaml
-
-
-EXIT_CODE_ERROR = 1
-EXIT_CODE_SUCCESS = 0
+from pathlib import Path
+import click
 
 
 class ComponentsConfig:
-    def __init__(self):
+    def __init__(self, components_yaml_file=None):
         self.components = []
-        self.config_file_name = "components.yaml"
+        self.config_file = components_yaml_file.absolute()
+        if not self.config_file.is_file():
+            logger.info("Config file %r does not exists." % str(self.config_file))
 
     def add(self, component):
         self.components.append(component)
@@ -25,24 +24,29 @@ class ComponentsConfig:
             for component in self.components
         }
 
-    def save_to_yaml(self, file_path=None):
+    def save_to_yaml(self, file=None):
+        file_to_save = file or self.config_file
         yaml.dump(
-            self.components_to_dict(),
-            open(file_path or self.config_file_name, "w"),
-            default_flow_style=False,
+            self.components_to_dict(), open(file_to_save, "w"), default_flow_style=False
         )
 
-    def read_from_yaml(self, file_path=None, clear_components=True):
-        components_dict = yaml.load(open(file_path or self.config_file_name))
+    def read_from_yaml(self, file=None, clear_components=True):
+        read_file = file or self.config_file
+        if read_file.is_file():
+            components_dict = yaml.load(open(read_file))
+        else:
+            components_dict = {}
+
         if clear_components:
             self.components = []
+
         for component_name in components_dict:
             component = components_dict[component_name]
             self.add(
                 Component(
                     repo_name=component["docker-repo"],
                     component_name=component_name,
-                    current_version_tag=component["current_version"],
+                    current_version_tag=component["current-version"],
                 )
             )
 
@@ -58,6 +62,7 @@ class Component:
         self.current_version = parse(current_version_tag)
         self.version_tags = []
         self.highest_version = self.current_version
+        self.highest_version_tag = self.current_version_tag
         super().__init__()
 
     def newer_version_exists(self):
@@ -66,13 +71,15 @@ class Component:
     def check(self):
         self.version_tags = fetch_versions(self.repo_name, self.component_name)
         self.highest_version = max([parse(tag) for tag in self.version_tags])
+        self.highest_version_tag = str(self.highest_version)
 
         return self.newer_version_exists()
 
     def to_dict(self):
         return {
             "docker-repo": self.repo_name,
-            "current_version": self.current_version_tag,
+            "current-version": self.current_version_tag,
+            "highest-version": self.highest_version_tag,
         }
 
 
@@ -101,18 +108,42 @@ def fetch_versions(repo_name, component):
     return r.json().get("tags", [])
 
 
-if __name__ == "__main__":
-    config = ComponentsConfig()
-    if len(sys.argv) == 4:
-        component_name = sys.argv[1]
-        repo_name = sys.argv[2]
-        version_tag = sys.argv[3]
-        config.add(Component(repo_name, component_name, version_tag))
+@click.command()
+@click.option(
+    "--file",
+    type=click.Path(exists=True, writable=True),
+    help="YAML file with components configuration. If not present other options need to be given.",
+)
+@click.option("--component", help="Component name to version veryfication.")
+@click.option("--repo_name", help="Repository name if component is docker image.")
+@click.option(
+    "--version_tag",
+    help="Version tag eg. v2.3.0 against which new version check will be run.",
+)
+def main(file, component, repo_name, version_tag):
+    if file is not None:
+        config_file = Path(file).absolute()
     else:
-        config.read_from_yaml()
+        config_file = Path.cwd().absolute().joinpath("components.yaml")
+
+    config = ComponentsConfig(components_yaml_file=config_file)
+    config.read_from_yaml()
+
+    if component is not None:
+        config.add(
+            Component(
+                repo_name=repo_name,
+                component_name=component,
+                current_version_tag=version_tag,
+            )
+        )
 
     ret_mess = []
     ret_mess.append("%r components to check" % len(config.components))
     ret_mess.append("%r components to update" % config.count_components_to_update())
 
     print("\n".join(ret_mess))
+
+
+if __name__ == "__main__":
+    main()

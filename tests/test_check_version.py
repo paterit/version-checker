@@ -1,7 +1,10 @@
 from packaging.version import parse
 from check_version import fetch_versions, Component, ComponentsConfig
 import pytest
-import yaml
+from pathlib import Path
+
+
+FIXTURE_DIR = Path(".").absolute() / "test_files"
 
 
 def compare_versions(old, new):
@@ -36,7 +39,6 @@ def check_docker_versions(repo_name, component_name, version_tag):
 def test_fetch_docker_images_versions():
     check_docker_versions("gliderlabs", "logspout", "v3.1")
     check_docker_versions("nicolargo", "glances", "v2.11.1")
-    check_docker_versions("buildbot", "buildbot-master", "v1.1.0")
 
 
 def test_fetch_versions_no_repo():
@@ -51,8 +53,20 @@ def test_component_checker_newer_version():
     assert checker.check() is False
 
 
-def test_components_list_write_read_yaml_file():
-    config = ComponentsConfig()
+def test_save_highest_version_to_yaml(tmp_path):
+    config_file = tmp_path / "components.yaml"
+    config = ComponentsConfig(components_yaml_file=config_file)
+    config.add(Component("gliderlabs", "logspout", "v3.1"))
+    to_update = config.count_components_to_update()
+    assert to_update == 1
+    config.save_to_yaml()
+    assert "highest-version:" in config_file.read_text()
+
+
+# @pytest.mark.datafiles(FIXTURE_DIR / "components.yaml")
+def test_components_list_write_read_yaml_file(tmp_path):
+    config_file = tmp_path / "components.yaml"
+    config = ComponentsConfig(components_yaml_file=config_file)
     config.add(Component("nicolargo", "glances", "v2.11.1"))
     config.add(Component("gliderlabs", "logspout", "v3.1"))
     dict1 = config.components_to_dict()
@@ -62,12 +76,20 @@ def test_components_list_write_read_yaml_file():
     assert dict1 == dict2
 
 
-def test_components_to_dict():
-    config = ComponentsConfig()
+def test_components_to_dict(tmp_path):
+    config = ComponentsConfig(tmp_path / "components.yaml")
     config.add(Component("nicolargo", "glances", "v2.11.1"))
     config.add(Component("gliderlabs", "logspout", "v3.1"))
     result = {
-        "glances": {"current_version": "v2.11.1", "docker-repo": "nicolargo"},
-        "logspout": {"current_version": "v3.1", "docker-repo": "gliderlabs"},
+        "glances": {
+            "current-version": "v2.11.1",
+            "docker-repo": "nicolargo",
+            "highest-version": "v2.11.1",
+        },
+        "logspout": {
+            "current-version": "v3.1",
+            "docker-repo": "gliderlabs",
+            "highest-version": "v3.1",
+        },
     }
     assert result == config.components_to_dict()

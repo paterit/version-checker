@@ -8,7 +8,7 @@ python = local["python"]
 
 @given(u"Docker image name {repo_name}/{component} and {version} as parameters")
 def step_impl(context, repo_name, component, version):
-    context.docker_image["param"] = component
+    context.docker_image["component"] = component
     context.docker_image["repo_name"] = repo_name
     context.docker_image["version"] = version
 
@@ -17,11 +17,11 @@ def step_impl(context, repo_name, component, version):
 def step_impl(context):
     ret = python[
         "check_version.py",
-        context.docker_image["param"],
-        context.docker_image["repo_name"],
-        context.docker_image["version"],
+        "--component=" + context.docker_image["component"],
+        "--repo_name=" + context.docker_image["repo_name"],
+        "--version_tag=" + context.docker_image["version"],
     ].run(retcode=None)
-    context.response = ret[1]
+    context.response = str(ret)
 
 
 @then(u"there is {response} in response")
