@@ -53,14 +53,17 @@ def test_component_checker_newer_version():
     assert checker.check() is False
 
 
-def test_save_highest_version_to_yaml(tmp_path):
+def test_save_next_version_to_yaml(tmp_path):
     config_file = tmp_path / "components.yaml"
     config = ComponentsConfig(components_yaml_file=config_file)
     config.add(Component("gliderlabs", "logspout", "v3.1"))
+    config.components[0].prefix = "version_prefix"
     to_update = config.count_components_to_update()
     assert to_update == 1
     config.save_to_yaml()
-    assert "highest-version:" in config_file.read_text()
+    file_content = config_file.read_text()
+    assert "next-version:" in file_content
+    assert "version_prefix" in file_content
 
 
 # @pytest.mark.datafiles(FIXTURE_DIR / "components.yaml")
@@ -84,12 +87,12 @@ def test_components_to_dict(tmp_path):
         "glances": {
             "current-version": "v2.11.1",
             "docker-repo": "nicolargo",
-            "highest-version": "v2.11.1",
+            "next-version": "v2.11.1",
         },
         "logspout": {
             "current-version": "v3.1",
             "docker-repo": "gliderlabs",
-            "highest-version": "v3.1",
+            "next-version": "v3.1",
         },
     }
     assert result == config.components_to_dict()

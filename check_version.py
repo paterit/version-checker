@@ -25,7 +25,7 @@ class ComponentsConfig:
         }
 
     def save_to_yaml(self, file=None):
-        file_to_save = file or self.config_file
+        file_to_save = Path(file) if file is not None else self.config_file
         yaml.dump(
             self.components_to_dict(), open(file_to_save, "w"), default_flow_style=False
         )
@@ -49,6 +49,8 @@ class ComponentsConfig:
                     current_version_tag=component["current-version"],
                 )
             )
+            if component.get("prefix", None):
+                self.components[-1].prefix = component["prefix"]
 
     def count_components_to_update(self):
         return sum([1 for component in self.components if component.check()])
@@ -61,26 +63,30 @@ class Component:
         self.current_version_tag = current_version_tag
         self.current_version = parse(current_version_tag)
         self.version_tags = []
-        self.highest_version = self.current_version
-        self.highest_version_tag = self.current_version_tag
+        self.next_version = self.current_version
+        self.next_version_tag = self.current_version_tag
+        self.prefix = None
         super().__init__()
 
     def newer_version_exists(self):
-        return self.highest_version > self.current_version
+        return self.next_version > self.current_version
 
     def check(self):
         self.version_tags = fetch_versions(self.repo_name, self.component_name)
-        self.highest_version = max([parse(tag) for tag in self.version_tags])
-        self.highest_version_tag = str(self.highest_version)
+        self.next_version = max([parse(tag) for tag in self.version_tags])
+        self.next_version_tag = (self.prefix or "") + str(self.next_version)
 
         return self.newer_version_exists()
 
     def to_dict(self):
-        return {
+        ret = {
             "docker-repo": self.repo_name,
             "current-version": self.current_version_tag,
-            "highest-version": self.highest_version_tag,
+            "next-version": self.next_version_tag,
         }
+        if self.prefix:
+            ret["prefix"] = self.prefix
+        return ret
 
 
 @cachier(stale_after=datetime.timedelta(days=3))
@@ -141,6 +147,7 @@ def main(file, component, repo_name, version_tag):
     ret_mess = []
     ret_mess.append("%r components to check" % len(config.components))
     ret_mess.append("%r components to update" % config.count_components_to_update())
+    #config.save_to_yaml("tmp_comp.yaml")
 
     print("\n".join(ret_mess))
 

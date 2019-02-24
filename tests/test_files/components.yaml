@@ -1,8 +1,9 @@
 glances:
-  current-version: v2.11.1
+  current-version: v2.11.0
   docker-repo: nicolargo
-  highest-version: v2.11.1
+  prefix: v
 logspout:
   current-version: v3.1
   docker-repo: gliderlabs
-  highest-version: v3.1
+  prefix: v
+
