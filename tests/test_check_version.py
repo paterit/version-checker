@@ -2,6 +2,7 @@ from packaging.version import parse
 from check_version import fetch_versions, Component, ComponentsConfig
 import pytest
 from pathlib import Path
+from rex import rex
 
 
 FIXTURE_DIR = Path(".").absolute() / "test_files"
@@ -57,13 +58,31 @@ def test_save_next_version_to_yaml(tmp_path):
     config_file = tmp_path / "components.yaml"
     config = ComponentsConfig(components_yaml_file=config_file)
     config.add(Component("gliderlabs", "logspout", "v3.1"))
-    config.components[0].prefix = "version_prefix"
     to_update = config.count_components_to_update()
     assert to_update == 1
     config.save_to_yaml()
     file_content = config_file.read_text()
     assert "next-version:" in file_content
+
+
+def test_save_prefix_to_yaml(tmp_path):
+    config_file = tmp_path / "components.yaml"
+    config = ComponentsConfig(components_yaml_file=config_file)
+    config.add(Component("gliderlabs", "logspout", "v3.1"))
+    config.components[0].prefix = "version_prefix"
+    config.save_to_yaml()
+    file_content = config_file.read_text()
     assert "version_prefix" in file_content
+
+
+def test_use_filter_for_component_to_yaml(tmp_path):
+    config_file = tmp_path / "components.yaml"
+    config = ComponentsConfig(components_yaml_file=config_file)
+    config.add(Component("gliderlabs", "logspout", "v3.1"))
+    config.components[0].prefix = "v"
+    config.components[0].filter = "/^v\d+\.\d+\.\d+$/"
+    config.components[0].check()
+    assert config.components[0].next_version_tag == rex(config.components[0].filter)
 
 
 # @pytest.mark.datafiles(FIXTURE_DIR / "components.yaml")

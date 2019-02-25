@@ -4,9 +4,9 @@ Feature: Verify if there are new version of docker image
   I want to verify if new version of docker image is avialble
 
   Scenario Outline: Check new version of docker image
-    Given Docker image name <repo_name>/<component> and <version> as parameters
-    When check version script is run
-    Then there is <response> in response
+     Given Docker image name <repo_name>/<component> and <version> as parameters
+      When check version script is run
+      Then there is <response> in response
 
 
   Examples: Docker images versions

@@ -6,7 +6,10 @@ build:
 shell:
 	@docker exec -it -w `pwd` version-checker bash
 run:
-	@docker exec -it -w `pwd` version-checker pipenv run python check_version.py
+	@docker exec -it -w `pwd` version-checker pipenv run \
+		python check_version.py \
+		--file=tests/test_files/components.yaml \
+		--destination-file=tmp_comp.yaml
 sbe:
 	@docker exec -it -w `pwd` version-checker pipenv run behave --tags=-skip --stop --no-skipped tests/features
 pytest:

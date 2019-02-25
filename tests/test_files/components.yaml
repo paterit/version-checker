@@ -1,9 +1,10 @@
 glances:
   current-version: v2.11.0
   docker-repo: nicolargo
+  filter: /^v\d+\.\d+\.\d+$/
   prefix: v
 logspout:
   current-version: v3.1
   docker-repo: gliderlabs
+  filter: /^v\d+\.\d+\.\d+$/
   prefix: v
-
