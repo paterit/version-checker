@@ -1,2 +1,2 @@
 FROM nicolargo/glances:v2.11.0
-CMD python --version
+CMD echo "glances"

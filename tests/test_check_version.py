@@ -3,9 +3,12 @@ from check_version import fetch_versions, Component, ComponentsConfig
 import pytest
 from pathlib import Path
 from rex import rex
+import tempfile
+import shutil
+from packaging.version import parse
 
 
-FIXTURE_DIR = Path(".").absolute() / "test_files"
+FIXTURE_DIR = Path(".").absolute() / "tests/test_files"
 
 
 def compare_versions(old, new):
@@ -75,6 +78,16 @@ def test_save_prefix_to_yaml(tmp_path):
     assert "version_prefix" in file_content
 
 
+def test_save_files_to_yaml(tmp_path):
+    config_file = tmp_path / "components.yaml"
+    config = ComponentsConfig(components_yaml_file=config_file)
+    config.add(Component("gliderlabs", "logspout", "v3.1"))
+    config.components[0].files = ["file1", "file2"]
+    config.save_to_yaml()
+    file_content = config_file.read_text()
+    assert "[file1, file2]" in file_content
+
+
 def test_use_filter_for_component_to_yaml(tmp_path):
     config_file = tmp_path / "components.yaml"
     config = ComponentsConfig(components_yaml_file=config_file)
@@ -85,7 +98,6 @@ def test_use_filter_for_component_to_yaml(tmp_path):
     assert config.components[0].next_version_tag == rex(config.components[0].filter)
 
 
-# @pytest.mark.datafiles(FIXTURE_DIR / "components.yaml")
 def test_components_list_write_read_yaml_file(tmp_path):
     config_file = tmp_path / "components.yaml"
     config = ComponentsConfig(components_yaml_file=config_file)
@@ -115,3 +127,45 @@ def test_components_to_dict(tmp_path):
         },
     }
     assert result == config.components_to_dict()
+
+
+def test_update_file_with_version(tmpdir):
+    comp = Component("gliderlabs", "logspout", "v3.1")
+    comp.files = ["file1"]
+    comp.next_version = parse("v3.3")
+    comp.next_version_tag = "v3.3"
+    file1 = tmpdir / "file1"
+    file1.write_text("v3.1", encoding=None)
+    comp.update_files(tmpdir)
+    assert "v3.3" in file1.read_text(encoding=None)
+
+
+def test_update_file_with_version_wrong_file(tmpdir):
+    comp = Component("gliderlabs", "logspout", "v3.1")
+    comp.files = ["file2"]
+    comp.next_version = parse("v3.3")
+    comp.next_version_tag = "v3.3"
+    file1 = tmpdir / "file1"
+    file1.write_text("v3.1", encoding=None)
+    with pytest.raises(AssertionError) as excinfo:
+        comp.update_files(tmpdir)
+    assert "No such file or directory" in str(excinfo.value)
+
+
+def test_update_file_with_version_not_updated(tmpdir):
+    comp = Component("gliderlabs", "logspout", "v3.1")
+    comp.files = ["file1"]
+    file1 = tmpdir / "file1"
+    file1.write_text("v3.3", encoding=None)
+    with pytest.raises(AssertionError) as excinfo:
+        comp.update_files(tmpdir)
+    assert "no replacement done for" in str(excinfo.value)
+
+
+def test_update_components_files():
+    test_dir = Path(tempfile.TemporaryDirectory().name)
+    shutil.copytree(FIXTURE_DIR, test_dir)
+    config = ComponentsConfig(test_dir / "components.yaml")
+    config.read_from_yaml()
+    assert config.check() == [("glances", True), ("logspout", True)]
+    assert config.update_files(test_dir) == 3

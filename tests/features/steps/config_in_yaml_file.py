@@ -20,7 +20,7 @@ def step_impl(context):
 
 @when(u"program is started without params")
 def step_impl(context):
-    ret = python["check_version.py"].run(retcode=None)
+    ret = python["check_version.py", "check"].run(retcode=None)
     context.response = str(ret)
 
 

@@ -17,6 +17,7 @@ def step_impl(context, repo_name, component, version):
 def step_impl(context):
     ret = python[
         "check_version.py",
+        "check",
         "--component=" + context.docker_image["component"],
         "--repo_name=" + context.docker_image["repo_name"],
         "--version_tag=" + context.docker_image["version"],

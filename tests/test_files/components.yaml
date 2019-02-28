@@ -3,8 +3,10 @@ glances:
   docker-repo: nicolargo
   filter: /^v\d+\.\d+\.\d+$/
   prefix: v
+  files: [glances/Dockerfile-glances, glances/script.sh]
 logspout:
   current-version: v3.1
   docker-repo: gliderlabs
   filter: /^v\d+\.\d+\.\d+$/
   prefix: v
+  files: [logspout/Dockerfile-logspout]
