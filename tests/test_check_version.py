@@ -1,11 +1,10 @@
 from packaging.version import parse
-from check_version import fetch_versions, Component, ComponentsConfig
+from components import fetch_versions, Component, ComponentsConfig
 import pytest
 from pathlib import Path
 from rex import rex
 import tempfile
 import shutil
-from packaging.version import parse
 
 
 FIXTURE_DIR = Path(".").absolute() / "tests/test_files"
