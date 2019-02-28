@@ -162,10 +162,44 @@ def test_update_file_with_version_not_updated(tmpdir):
     assert "no replacement done for" in str(excinfo.value)
 
 
-def test_update_components_files():
+def config_from_copy_of_test_dir():
     test_dir = Path(tempfile.TemporaryDirectory().name)
     shutil.copytree(FIXTURE_DIR, test_dir)
-    config = ComponentsConfig(test_dir / "components.yaml")
+    return test_dir, ComponentsConfig(test_dir / "components.yaml")
+
+
+def test_update_components_files():
+    (test_dir, config) = config_from_copy_of_test_dir()
     config.read_from_yaml()
     assert config.check() == [("glances", True), ("logspout", True)]
     assert config.update_files(test_dir) == 3
+
+
+def test_dry_run_save_config():
+    (test_dir, config) = config_from_copy_of_test_dir()
+    config.read_from_yaml()
+    content1 = config.config_file.read_text()
+    config.save_changes(destination_file=None, dry_run=True, print_yaml=False)
+    content2 = config.config_file.read_text()
+    assert content1 == content2
+
+
+def test_dry_run_update_file():
+    (test_dir, config) = config_from_copy_of_test_dir()
+    config.read_from_yaml()
+    config.check()
+    assert config.components[0].current_version != config.components[0].next_version
+    assert config.components[1].current_version != config.components[1].next_version
+    content1 = config.config_file.parent.joinpath(
+        config.components[0].files[0]
+    ).read_text()
+    config.update_files(base_dir=config.config_file.parent, dry_run=True)
+    content2 = config.config_file.parent.joinpath(
+        config.components[0].files[0]
+    ).read_text()
+    assert content1 == content2
+    config.update_files(base_dir=config.config_file.parent, dry_run=False)
+    content2 = config.config_file.parent.joinpath(
+        config.components[0].files[0]
+    ).read_text()
+    assert content1 != content2

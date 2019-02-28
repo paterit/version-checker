@@ -30,6 +30,16 @@ class ComponentsConfig:
         file_to_save = Path(file) if file is not None else self.config_file
         yaml.dump(self.components_to_dict(), open(file_to_save, "w"))
 
+    def save_changes(self, destination_file, dry_run, print_yaml):
+        if not dry_run:
+            if destination_file:
+                self.save_to_yaml(destination_file)
+            elif self.config_file:
+                self.save_to_yaml()
+
+        if dry_run or print_yaml:
+            print(yaml.dump(self.components_to_dict()))
+
     def read_from_yaml(self, file=None, clear_components=True):
         read_file = file or self.config_file
         if read_file and read_file.is_file():
@@ -66,10 +76,10 @@ class ComponentsConfig:
     def check(self):
         return [(comp.component_name, comp.check()) for comp in self.components]
 
-    def update_files(self, base_dir):
+    def update_files(self, base_dir, dry_run=False):
         return sum(
             [
-                comp.update_files(base_dir)
+                comp.update_files(base_dir, dry_run)
                 for comp in self.components
                 if comp.newer_version_exists()
             ]
@@ -121,7 +131,7 @@ class Component:
             ret["files"] = self.files
         return ret
 
-    def update_files(self, base_dir):
+    def update_files(self, base_dir, dry_run=False):
         sed = local["sed"]
         counter = 0
 
@@ -138,11 +148,12 @@ class Component:
                 "Error in version replacment: no replacement done for: %r.\n %r"
                 % (self.current_version_tag, str(ret))
             )
-            ret = sed[
-                "-i",
-                "s|" + self.current_version_tag + "|" + self.next_version_tag + "|",
-                path,
-            ].run(retcode=None)
+            if not dry_run:
+                ret = sed[
+                    "-i",
+                    "s|" + self.current_version_tag + "|" + self.next_version_tag + "|",
+                    path,
+                ].run(retcode=None)
             counter += 1
         return counter
 
@@ -222,7 +233,7 @@ def cli(ctx, file, destination_file, dry_run, print_yaml):
 @click.pass_context
 def check(ctx, component, repo_name, version_tag):
     config = ctx.obj["config"]
-    config_file = ctx.obj["config_file"]
+    # config_file = ctx.obj["config_file"]
     destination_file = ctx.obj["destination_file"]
     dry_run = ctx.obj["dry_run"]
     print_yaml = ctx.obj["print_yaml"]
@@ -241,16 +252,7 @@ def check(ctx, component, repo_name, version_tag):
     ret_mess = []
     ret_mess.append("%r components to check" % len(config.components))
     ret_mess.append("%r components to update" % config.count_components_to_update())
-
-    if not dry_run:
-        if destination_file:
-            config.save_to_yaml(destination_file)
-        elif config_file:
-            config.save_to_yaml(config_file)
-
-    if dry_run or print_yaml:
-        print(yaml.dump(config.components_to_dict(), default_flow_style=False))
-
+    config.save_changes(destination_file, dry_run, print_yaml)
     print("\n".join(ret_mess))
 
 
@@ -258,9 +260,14 @@ def check(ctx, component, repo_name, version_tag):
 @click.pass_context
 def update(ctx):
     config = ctx.obj["config"]
+    dry_run = ctx.obj["dry_run"]
+    destination_file = ctx.obj["destination_file"]
+    print_yaml = ctx.obj["print_yaml"]
+
     config.read_from_yaml()
     config.check()
-    config.update_files(config.config_file.parent)
+    config.save_changes(destination_file, dry_run, print_yaml)
+    config.update_files(config.config_file.parent, dry_run)
 
 
 if __name__ == "__main__":
