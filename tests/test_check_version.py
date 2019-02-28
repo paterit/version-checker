@@ -78,6 +78,16 @@ def test_save_prefix_to_yaml(tmp_path):
     assert "version_prefix" in file_content
 
 
+def test_exlude_versions_to_yaml(tmp_path):
+    config_file = tmp_path / "components.yaml"
+    config = ComponentsConfig(components_yaml_file=config_file)
+    config.add(Component("gliderlabs", "logspout", "v3.1"))
+    config.components[0].exclude_versions = ["v3.2.6"]
+    config.save_to_yaml()
+    file_content = config_file.read_text()
+    assert "exclude-versions: [v3.2.6]" in file_content
+
+
 def test_save_files_to_yaml(tmp_path):
     config_file = tmp_path / "components.yaml"
     config = ComponentsConfig(components_yaml_file=config_file)
@@ -203,3 +213,11 @@ def test_dry_run_update_file():
         config.components[0].files[0]
     ).read_text()
     assert content1 != content2
+
+
+def test_exclude_versions_param():
+    (test_dir, config) = config_from_copy_of_test_dir()
+    config.read_from_yaml()
+    config.check()
+    config.save_changes()
+    assert "next-version: v3.2.6" not in config.config_file.read_text()

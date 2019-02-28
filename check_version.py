@@ -30,7 +30,7 @@ class ComponentsConfig:
         file_to_save = Path(file) if file is not None else self.config_file
         yaml.dump(self.components_to_dict(), open(file_to_save, "w"))
 
-    def save_changes(self, destination_file, dry_run, print_yaml):
+    def save_changes(self, destination_file=None, dry_run=False, print_yaml=False):
         if not dry_run:
             if destination_file:
                 self.save_to_yaml(destination_file)
@@ -66,6 +66,9 @@ class ComponentsConfig:
                 "filter", Component.FILTER_DEFAULT
             )
             self.components[-1].files = component.get("files", Component.FILES_DEFAULT)
+            self.components[-1].exclude_versions = component.get(
+                "exclude-versions", Component.EXLUDE_VERSIONS_DEFAULT
+            )
 
     def count_components_to_update(self):
         self.check()
@@ -91,6 +94,7 @@ class Component:
     PREFIX_DEFAULT = None
     FILTER_DEFAULT = "/.*/"
     FILES_DEFAULT = None
+    EXLUDE_VERSIONS_DEFAULT = []
 
     def __init__(self, repo_name, component_name, current_version_tag):
         self.repo_name = repo_name
@@ -103,6 +107,7 @@ class Component:
         self.prefix = self.PREFIX_DEFAULT
         self.filter = self.FILTER_DEFAULT
         self.files = self.FILES_DEFAULT
+        self.exclude_versions = self.EXLUDE_VERSIONS_DEFAULT
         super().__init__()
 
     def newer_version_exists(self):
@@ -111,7 +116,11 @@ class Component:
     def check(self):
         self.version_tags = fetch_versions(self.repo_name, self.component_name)
         self.next_version = max(
-            [parse(tag) for tag in self.version_tags if (tag == rex(self.filter))]
+            [
+                parse(tag)
+                for tag in self.version_tags
+                if (tag == rex(self.filter)) and tag not in self.exclude_versions
+            ]
         )
         self.next_version_tag = (self.prefix or "") + str(self.next_version)
 
@@ -129,6 +138,8 @@ class Component:
             ret["filter"] = self.filter
         if self.files != self.FILES_DEFAULT:
             ret["files"] = self.files
+        if self.exclude_versions != self.EXLUDE_VERSIONS_DEFAULT:
+            ret["exclude-versions"] = self.exclude_versions
         return ret
 
     def update_files(self, base_dir, dry_run=False):

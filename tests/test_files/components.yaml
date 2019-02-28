@@ -10,3 +10,4 @@ logspout:
   filter: /^v\d+\.\d+\.\d+$/
   prefix: v
   files: [logspout/Dockerfile-logspout]
+  exclude-versions: [v3.2.6]
