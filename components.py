@@ -155,8 +155,8 @@ class Component:
             ].run(retcode=None)
             assert ret[0] == 0, "Error in version replacment: sed error %r\n" % str(ret)
             assert ret[1] != "", (
-                "Error in version replacment: no replacement done for: %r.\n %r"
-                % (self.current_version_tag, str(ret))
+                "Error in version replacment: no replacement done for current_version: %r and next_version: %r.\n %r"
+                % (self.current_version_tag, self.next_version_tag, str(ret))
             )
             if not dry_run:
                 ret = sed[

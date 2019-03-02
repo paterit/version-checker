@@ -6,7 +6,7 @@ import yaml
 
 python = local["python"]
 
-
+# TODO: rewrite with tempdir for dest_file (like in udpate_versions.py)
 @given(u"YAML file with components configuration")
 def step_impl(context):
     test_file = Path.cwd() / "tests/test_files/components.yaml"

@@ -77,12 +77,19 @@ def check(ctx, component, repo_name, version_tag):
 
 
 @cli.command()
+@click.option(
+    "--test-command",
+    "test_command",
+    help="Command that should be run after updating each component.",
+)
 @click.pass_context
-def update(ctx):
+def update(ctx, test_command):
     config = ctx.obj["config"]
     dry_run = ctx.obj["dry_run"]
     destination_file = ctx.obj["destination_file"]
     print_yaml = ctx.obj["print_yaml"]
+
+    print(test_command)
 
     config.read_from_yaml()
     config.check()
