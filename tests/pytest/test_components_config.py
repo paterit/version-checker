@@ -3,6 +3,7 @@ from pathlib import Path
 from rex import rex
 import tempfile
 import shutil
+import pytest
 
 
 FIXTURE_DIR = Path(".").absolute() / "tests/test_files"
@@ -107,7 +108,7 @@ def test_dry_run_save_config():
     (test_dir, config) = config_from_copy_of_test_dir()
     config.read_from_yaml()
     content1 = config.config_file.read_text()
-    config.save_changes(destination_file=None, dry_run=True, print_yaml=False)
+    config.save_config(destination_file=None, dry_run=True, print_yaml=False)
     content2 = config.config_file.read_text()
     assert content1 == content2
 
@@ -138,5 +139,27 @@ def test_exclude_versions_param():
     (test_dir, config) = config_from_copy_of_test_dir()
     config.read_from_yaml()
     config.check()
-    config.save_changes()
+    config.save_config()
     assert "next-version: v3.2.6" not in config.config_file.read_text()
+
+
+def test_update_components_files_with_testing_positive(capfd):
+    (test_dir, config) = config_from_copy_of_test_dir()
+    config.read_from_yaml()
+    config.test_command = ["make", "test"]
+    assert config.check() == [("glances", True), ("logspout", True)]
+    assert config.update_files(test_dir) == 3
+    captured = capfd.readouterr()
+    assert captured.out.count("Test OK") == 2, captured.out
+
+
+def test_update_components_files_with_testing_negative(capfd):
+    (test_dir, config) = config_from_copy_of_test_dir()
+    config.read_from_yaml()
+    config.test_command = ["make", "test-fail"]
+    assert config.check() == [("glances", True), ("logspout", True)]
+    with pytest.raises(AssertionError) as excinfo:
+        config.update_files(test_dir)
+    assert "returncode=2" in str(excinfo.value)
+    captured = capfd.readouterr()
+    assert "Test KO" in captured.out, captured.out

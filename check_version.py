@@ -72,7 +72,7 @@ def check(ctx, component, repo_name, version_tag):
     ret_mess = []
     ret_mess.append("%r components to check" % len(config.components))
     ret_mess.append("%r components to update" % config.count_components_to_update())
-    config.save_changes(destination_file, dry_run, print_yaml)
+    config.save_config(destination_file, dry_run, print_yaml)
     print("\n".join(ret_mess))
 
 
@@ -89,11 +89,9 @@ def update(ctx, test_command):
     destination_file = ctx.obj["destination_file"]
     print_yaml = ctx.obj["print_yaml"]
 
-    print(test_command)
-
     config.read_from_yaml()
     config.check()
-    config.save_changes(destination_file, dry_run, print_yaml)
+    config.save_config(destination_file, dry_run, print_yaml)
     config.update_files(config.config_file.parent, dry_run)
 
 

@@ -7,6 +7,7 @@ import yaml
 from pathlib import Path
 from rex import rex
 from plumbum import local
+from subprocess import run
 
 
 class ComponentsConfig:
@@ -15,6 +16,7 @@ class ComponentsConfig:
         self.config_file = components_yaml_file
         if self.config_file and not self.config_file.is_file():
             logger.info("Config file %r does not exists." % str(self.config_file))
+        self.test_command = None
 
     def add(self, component):
         self.components.append(component)
@@ -29,7 +31,7 @@ class ComponentsConfig:
         file_to_save = Path(file) if file is not None else self.config_file
         yaml.dump(self.components_to_dict(), open(file_to_save, "w"))
 
-    def save_changes(self, destination_file=None, dry_run=False, print_yaml=False):
+    def save_config(self, destination_file=None, dry_run=False, print_yaml=False):
         if not dry_run:
             if destination_file:
                 self.save_to_yaml(destination_file)
@@ -79,13 +81,14 @@ class ComponentsConfig:
         return [(comp.component_name, comp.check()) for comp in self.components]
 
     def update_files(self, base_dir, dry_run=False):
-        return sum(
-            [
-                comp.update_files(base_dir, dry_run)
-                for comp in self.components
-                if comp.newer_version_exists()
-            ]
-        )
+        counter = 0
+        for component in self.components:
+            if component.newer_version_exists():
+                counter += component.update_files(base_dir, dry_run)
+            if self.test_command:
+                ret = run(self.test_command, cwd=self.config_file.parent)
+                assert ret.returncode == 0, "Error " + str(ret)
+        return counter
 
 
 class Component:
