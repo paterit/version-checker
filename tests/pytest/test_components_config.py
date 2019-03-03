@@ -1,6 +1,4 @@
-from packaging.version import parse
-from components import fetch_versions, Component, ComponentsConfig
-import pytest
+from updater.components import Component, ComponentsConfig
 from pathlib import Path
 from rex import rex
 import tempfile
