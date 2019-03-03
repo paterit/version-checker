@@ -42,7 +42,7 @@ class ComponentsConfig:
     def read_from_yaml(self, file=None, clear_components=True):
         read_file = file or self.config_file
         if read_file and read_file.is_file():
-            components_dict = yaml.load(open(read_file))
+            components_dict = yaml.safe_load(open(read_file))
         else:
             components_dict = {}
 
