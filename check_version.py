@@ -89,6 +89,7 @@ def update(ctx, test_command):
     destination_file = ctx.obj["destination_file"]
     print_yaml = ctx.obj["print_yaml"]
 
+    config.test_command = test_command.split() if test_command is not None else None
     config.read_from_yaml()
     config.check()
     config.save_config(destination_file, dry_run, print_yaml)

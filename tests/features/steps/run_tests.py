@@ -7,6 +7,7 @@ import shutil
 python = local["python"]
 
 
+# TODO move to some tools modules from all files
 def plumbum_msg(command_exit):
     return "Exit code %d.\nCommand output: %s.\nError msg: %s\n" % (
         command_exit[0],
@@ -40,6 +41,9 @@ def step_impl(context):
 
 @then(u"run test command and stop in case of failure")
 def step_impl(context):
-    assert "Test run OK" in context.response, (
-        "'Test run OK' is not found in output.\n" + plumbum_msg(context.response)
+    assert "Test OK" in context.response[1], (
+        "'Test OK' is not found in output.\n" + plumbum_msg(context.response)
     )
+    assert (
+        context.response[1].count("Test OK") == 2
+    ), "To few occurenc of 'Test OK'\n" + plumbum_msg(context.response)

@@ -7,6 +7,14 @@ import shutil
 python = local["python"]
 
 
+def plumbum_msg(command_exit):
+    return "Exit code %d.\nCommand output: %s.\nError msg: %s\n" % (
+        command_exit[0],
+        command_exit[1],
+        command_exit[2],
+    )
+
+
 @given(u"New version of component is set in config file")
 def step_impl(context):
     test_dir = Path(tempfile.TemporaryDirectory().name)
@@ -26,7 +34,7 @@ def step_impl(context):
         "update",
     ].run(retcode=None)
     context.response = str(ret)
-    assert ret[0] == 0, "Error returned by script: %r" % str(ret)
+    assert ret[0] == 0, "Error returned by script:\n" + plumbum_msg(ret)
 
 
 @then(u"replace version in files defined in config files")

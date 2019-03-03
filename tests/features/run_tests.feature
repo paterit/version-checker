@@ -3,8 +3,6 @@ Feature: Run tests after updating component
   As a maintainer
   I want test to be run after each component version change
 
-  @wip
-  @skip
   Scenario: Update version in defined files for component
      Given New version of component is set in defined files
       When script is run in update mode with test parameter
