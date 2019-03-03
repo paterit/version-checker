@@ -1,6 +1,6 @@
 from pathlib import Path
 import click
-from components import ComponentsConfig, Component
+from updater.components import ComponentsConfig, Component
 
 
 @click.group()
