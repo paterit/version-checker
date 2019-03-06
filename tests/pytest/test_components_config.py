@@ -1,4 +1,4 @@
-from updater.components import Component, ComponentsConfig
+from updater import components
 from pathlib import Path
 from rex import rex
 import tempfile
@@ -8,11 +8,25 @@ import pytest
 
 FIXTURE_DIR = Path(".").absolute() / "tests/test_files"
 
+logspout = {
+    "component_type": "docker-image",
+    "repo_name": "gliderlabs",
+    "component_name": "logspout",
+    "current_version_tag": "v3.1",
+}
+
+glances = {
+    "component_type": "docker-image",
+    "repo_name": "nicolargo",
+    "component_name": "glances",
+    "current_version_tag": "v2.11.1",
+}
+
 
 def test_save_next_version_to_yaml(tmp_path):
     config_file = tmp_path / "components.yaml"
-    config = ComponentsConfig(components_yaml_file=config_file)
-    config.add(Component("gliderlabs", "logspout", "v3.1"))
+    config = components.Config(components_yaml_file=config_file)
+    config.add(components.factory.get(**logspout))
     to_update = config.count_components_to_update()
     assert to_update == 1
     config.save_to_yaml()
@@ -22,8 +36,8 @@ def test_save_next_version_to_yaml(tmp_path):
 
 def test_save_prefix_to_yaml(tmp_path):
     config_file = tmp_path / "components.yaml"
-    config = ComponentsConfig(components_yaml_file=config_file)
-    config.add(Component("gliderlabs", "logspout", "v3.1"))
+    config = components.Config(components_yaml_file=config_file)
+    config.add(components.factory.get(**logspout))
     config.components[0].prefix = "version_prefix"
     config.save_to_yaml()
     file_content = config_file.read_text()
@@ -32,8 +46,8 @@ def test_save_prefix_to_yaml(tmp_path):
 
 def test_exlude_versions_to_yaml(tmp_path):
     config_file = tmp_path / "components.yaml"
-    config = ComponentsConfig(components_yaml_file=config_file)
-    config.add(Component("gliderlabs", "logspout", "v3.1"))
+    config = components.Config(components_yaml_file=config_file)
+    config.add(components.factory.get(**logspout))
     config.components[0].exclude_versions = ["v3.2.6"]
     config.save_to_yaml()
     file_content = config_file.read_text()
@@ -42,8 +56,8 @@ def test_exlude_versions_to_yaml(tmp_path):
 
 def test_save_files_to_yaml(tmp_path):
     config_file = tmp_path / "components.yaml"
-    config = ComponentsConfig(components_yaml_file=config_file)
-    config.add(Component("gliderlabs", "logspout", "v3.1"))
+    config = components.Config(components_yaml_file=config_file)
+    config.add(components.factory.get(**logspout))
     config.components[0].files = ["file1", "file2"]
     config.save_to_yaml()
     file_content = config_file.read_text()
@@ -52,8 +66,8 @@ def test_save_files_to_yaml(tmp_path):
 
 def test_use_filter_for_component_to_yaml(tmp_path):
     config_file = tmp_path / "components.yaml"
-    config = ComponentsConfig(components_yaml_file=config_file)
-    config.add(Component("gliderlabs", "logspout", "v3.1"))
+    config = components.Config(components_yaml_file=config_file)
+    config.add(components.factory.get(**logspout))
     config.components[0].prefix = "v"
     config.components[0].filter = "/^v\d+\.\d+\.\d+$/"
     config.components[0].check()
@@ -62,9 +76,9 @@ def test_use_filter_for_component_to_yaml(tmp_path):
 
 def test_components_list_write_read_yaml_file(tmp_path):
     config_file = tmp_path / "components.yaml"
-    config = ComponentsConfig(components_yaml_file=config_file)
-    config.add(Component("nicolargo", "glances", "v2.11.1"))
-    config.add(Component("gliderlabs", "logspout", "v3.1"))
+    config = components.Config(components_yaml_file=config_file)
+    config.add(components.factory.get(**glances))
+    config.add(components.factory.get(**logspout))
     dict1 = config.components_to_dict()
     config.save_to_yaml()
     config.read_from_yaml()
@@ -73,9 +87,9 @@ def test_components_list_write_read_yaml_file(tmp_path):
 
 
 def test_components_to_dict(tmp_path):
-    config = ComponentsConfig(tmp_path / "components.yaml")
-    config.add(Component("nicolargo", "glances", "v2.11.1"))
-    config.add(Component("gliderlabs", "logspout", "v3.1"))
+    config = components.Config(tmp_path / "components.yaml")
+    config.add(components.factory.get(**glances))
+    config.add(components.factory.get(**logspout))
     result = {
         "glances": {
             "current-version": "v2.11.1",
@@ -94,7 +108,7 @@ def test_components_to_dict(tmp_path):
 def config_from_copy_of_test_dir():
     test_dir = Path(tempfile.TemporaryDirectory().name)
     shutil.copytree(FIXTURE_DIR, test_dir)
-    return test_dir, ComponentsConfig(test_dir / "components.yaml")
+    return test_dir, components.Config(test_dir / "components.yaml")
 
 
 def test_update_components_files():

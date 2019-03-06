@@ -1,10 +1,24 @@
 from packaging.version import parse
-from updater.components import fetch_versions, Component
+from updater import components
 import pytest
 from pathlib import Path
 
 
 FIXTURE_DIR = Path(".").absolute() / "tests/test_files"
+
+logspout = {
+    "component_type": "docker-image",
+    "repo_name": "gliderlabs",
+    "component_name": "logspout",
+    "current_version_tag": "v3.1",
+}
+
+glances = {
+    "component_type": "docker-image",
+    "repo_name": "nicolargo",
+    "component_name": "glances",
+    "current_version_tag": "v2.11.1",
+}
 
 
 def compare_versions(old, new):
@@ -26,7 +40,7 @@ def test_parse_compare_versions():
 
 
 def check_docker_versions(repo_name, component_name, version_tag):
-    tags = fetch_versions(repo_name, component_name)
+    tags = components.fetch_versions(repo_name, component_name)
     assert len(tags) > 0, "Empty list returned %r" % tags
     assert version_tag in tags, "For %r/%r lack of version: %r in tags %r" % (
         repo_name,
@@ -42,19 +56,21 @@ def test_fetch_docker_images_versions():
 
 
 def test_fetch_versions_no_repo():
-    tags = fetch_versions("repo_not_exists", "image_not_exists")
+    tags = components.fetch_versions("repo_not_exists", "image_not_exists")
     assert len(tags) == 0, "Empty list returned %r" % tags
 
 
 def test_component_checker_newer_version():
-    checker = Component("nicolargo", "glances", "v2.0.0")
+    glances_old = {**glances, "current_version_tag": "v2.0.0"}
+    glances_new = {**glances, "current_version_tag": "v100.0.0"}
+    checker = components.factory.get(**glances_old)
     assert checker.check() is True
-    checker = Component("nicolargo", "glances", "v100.0.0")
+    checker = components.factory.get(**glances_new)
     assert checker.check() is False
 
 
 def test_update_file_with_version(tmpdir):
-    comp = Component("gliderlabs", "logspout", "v3.1")
+    comp = components.factory.get(**logspout)
     comp.files = ["file1"]
     comp.next_version = parse("v3.3")
     comp.next_version_tag = "v3.3"
@@ -65,7 +81,7 @@ def test_update_file_with_version(tmpdir):
 
 
 def test_update_file_with_version_wrong_file(tmpdir):
-    comp = Component("gliderlabs", "logspout", "v3.1")
+    comp = components.factory.get(**logspout)
     comp.files = ["file2"]
     comp.next_version = parse("v3.3")
     comp.next_version_tag = "v3.3"
@@ -77,7 +93,7 @@ def test_update_file_with_version_wrong_file(tmpdir):
 
 
 def test_update_file_with_version_not_updated(tmpdir):
-    comp = Component("gliderlabs", "logspout", "v3.1")
+    comp = components.factory.get(**logspout)
     comp.files = ["file1"]
     file1 = tmpdir / "file1"
     file1.write_text("v3.3", encoding=None)

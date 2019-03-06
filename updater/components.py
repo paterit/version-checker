@@ -10,7 +10,7 @@ from plumbum import local
 from subprocess import run
 
 
-class ComponentsConfig:
+class Config:
     def __init__(self, components_yaml_file=None):
         self.components = []
         self.config_file = components_yaml_file
@@ -54,7 +54,8 @@ class ComponentsConfig:
         for component_name in components_dict:
             component = components_dict[component_name]
             self.add(
-                Component(
+                factory.get(
+                    component_type="docker-image",
                     repo_name=component["docker-repo"],
                     component_name=component_name,
                     current_version_tag=component["current-version"],
@@ -194,3 +195,33 @@ def fetch_versions(repo_name, component):
         headers=h,
     )
     return r.json().get("tags", [])
+
+
+class DockerImageComponent(Component):
+    """docstring for ClassName"""
+
+    def __init__(self, repo_name, component_name, current_version_tag):
+        super(DockerImageComponent, self).__init__(
+            repo_name, component_name, current_version_tag
+        )
+        self.repo_name = repo_name
+
+
+class PypiComponent(Component):
+    """docstring for ClassName"""
+
+    def __init__(self, component_name, current_version_tag, **_ignored):
+        super(PypiComponent, self).__init__(component_name, current_version_tag)
+
+
+class ComponentFactory:
+    def get(self, component_type, **args):
+        if component_type == "docker-image":
+            return DockerImageComponent(**args)
+        elif component_type == "pypi":
+            return PypiComponent(**args)
+        else:
+            raise ValueError(component_type)
+
+
+factory = ComponentFactory()
