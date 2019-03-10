@@ -1,17 +1,10 @@
 from behave import *
 from plumbum import local
+from updater import plumbum_msg
 
 RET_CODE_SUCCESS = 0
 
 python = local["python"]
-
-
-def plumbum_msg(command_exit):
-    return "Exit code %d.\nCommand output: %s.\nError msg: %s\n" % (
-        command_exit[0],
-        command_exit[1],
-        command_exit[2],
-    )
 
 
 @given(
