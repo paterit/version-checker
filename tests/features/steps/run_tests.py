@@ -5,8 +5,6 @@ import tempfile
 import shutil
 from updater import plumbum_msg
 
-python = local["python"]
-
 
 @given(u"New version of component is set in defined files")
 def step_impl(context):
@@ -20,6 +18,7 @@ def step_impl(context):
 
 @when(u"script is run in update mode with test parameter")
 def step_impl(context):
+    python = local["python"]
     ret = python[
         "check_version.py",
         "--file=" + str(context.run_tests["test_config_file"]),

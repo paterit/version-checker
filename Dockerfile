@@ -5,7 +5,7 @@ RUN echo "http://dl-4.alpinelinux.org/alpine/v3.8/main" >> /etc/apk/repositories
     echo "http://dl-4.alpinelinux.org/alpine/v3.8/community" >> /etc/apk/repositories
 
 RUN apk update
-RUN apk add bash make
+RUN apk add bash make git
 
 RUN pip install pipenv
 

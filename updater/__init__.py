@@ -4,3 +4,8 @@ def plumbum_msg(command_exit):
         command_exit[1],
         command_exit[2],
     )
+
+
+def git_check(ret):
+    assert ret[0] == 0, "Error returned by git.\n" + plumbum_msg(ret)
+    return ret

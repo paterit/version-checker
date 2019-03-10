@@ -4,29 +4,28 @@ from updater import plumbum_msg
 
 RET_CODE_SUCCESS = 0
 
-python = local["python"]
-
 
 @given(
     u"Component with {component_type}, {repo_name}, {component_name} and {version} as parameters"
 )
 # @given(u"Docker image name {repo_name}/{component} and {version} as parameters")
 def step_impl(context, component_type, repo_name, component_name, version):
-    context.docker_image["component_type"] = component_type
-    context.docker_image["component_name"] = component_name
-    context.docker_image["repo_name"] = repo_name
-    context.docker_image["version"] = version
+    context.component_check["component_type"] = component_type
+    context.component_check["component_name"] = component_name
+    context.component_check["repo_name"] = repo_name
+    context.component_check["version"] = version
 
 
 @when(u"check version script is run")
 def step_impl(context):
+    python = local["python"]
     ret = python[
         "check_version.py",
         "check",
-        "--type=" + context.docker_image["component_type"],
-        "--component=" + context.docker_image["component_name"],
-        "--repo_name=" + context.docker_image["repo_name"],
-        "--version_tag=" + context.docker_image["version"],
+        "--type=" + context.component_check["component_type"],
+        "--component=" + context.component_check["component_name"],
+        "--repo_name=" + context.component_check["repo_name"],
+        "--version_tag=" + context.component_check["version"],
     ].run(retcode=None)
     context.response = ret
     assert ret[0] == 0, "Error returned by script:\n" + plumbum_msg(ret)

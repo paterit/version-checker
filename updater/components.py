@@ -8,6 +8,8 @@ from pathlib import Path
 from rex import rex
 from subprocess import run
 from abc import ABC, abstractmethod
+from plumbum import local
+from updater import git_check, plumbum_msg
 
 
 class Config:
@@ -17,6 +19,7 @@ class Config:
         if self.config_file and not self.config_file.is_file():
             logger.info("Config file %r does not exists." % str(self.config_file))
         self.test_command = None
+        self.git_commit = True
 
     def add(self, component):
         self.components.append(component)
@@ -86,14 +89,36 @@ class Config:
     def check(self):
         return [(comp.component_name, comp.check()) for comp in self.components]
 
+    def run_tests(self):
+        ret = run(self.test_command, cwd=self.config_file.parent)
+        assert ret.returncode == 0, "Error " + str(ret)
+
+    def commit_changes(self, component, dry_run):
+        git = local["git"]
+        with local.cwd(self.config_file.parent):
+            ret = git_check(git["diff", "--name-only"].run(retcode=None))
+            changed_files = ret[1].splitlines()
+            assert set(component.files).issubset(
+                set(changed_files)
+            ), "Not all SRC files are in git changed files.\n" + plumbum_msg(ret)
+            if not dry_run:
+                for file_name in component.files:
+                    git_check(git["add", file_name].run(retcode=None))
+                git_check(
+                    git["commit", "--message=%s" % component.component_name].run(
+                        retcode=None
+                    )
+                )
+
     def update_files(self, base_dir, dry_run=False):
         counter = 0
         for component in self.components:
             if component.newer_version_exists():
                 counter += component.update_files(base_dir, dry_run)
             if self.test_command:
-                ret = run(self.test_command, cwd=self.config_file.parent)
-                assert ret.returncode == 0, "Error " + str(ret)
+                self.run_tests()
+            if not self.git_commit:
+                self.commit_changes(component, dry_run)
         return counter
 
 

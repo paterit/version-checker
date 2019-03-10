@@ -11,8 +11,12 @@ run:
 		--file=tests/test_files/components.yaml \
 		--destination-file=tmp_comp.yaml \
 		check
+
+help:
+	@docker exec -it -w `pwd` version-checker pipenv run python check_version.py --help
+
 sbe:
-	@docker exec -it -w `pwd` version-checker pipenv run behave --tags=-skip --stop --no-skipped tests/features
+	@docker exec -it -w `pwd` version-checker pipenv run behave --tags=-skip --tags=-wip --stop --no-skipped tests/features
 sbe-wip:
 	@docker exec -it -w `pwd` version-checker pipenv run behave --tags=wip --stop --no-skipped --no-summary tests/features
 pytest:

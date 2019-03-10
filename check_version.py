@@ -7,19 +7,19 @@ from updater import components
 @click.option(
     "--file",
     type=click.Path(exists=True, writable=True),
-    help="YAML file with components configuration. If not present other options need to be given.",
+    help="YAML file with components configuration. If not present other options for 'check' command are required.",
 )
 @click.option(
     "--destination-file",
     "destination_file",
     type=click.Path(),
-    help="If this option is given components configuration will be wrtten here.",
+    help="If this option is given components configuration with new versions will be wrtten here.",
 )
 @click.option(
     "--dry-run",
     "dry_run",
     is_flag=True,
-    help="If set no changes to config files are written.",
+    help="If set no changes to any files are written.",
 )
 @click.option(
     "--print",
@@ -74,8 +74,8 @@ def check(ctx, component_type, component, repo_name, version_tag):
         )
 
     ret_mess = []
-    ret_mess.append("%r components to check" % len(config.components))
-    ret_mess.append("%r components to update" % config.count_components_to_update())
+    ret_mess.append("%d components to check" % len(config.components))
+    ret_mess.append("%d components to update" % config.count_components_to_update())
     config.save_config(destination_file, dry_run, print_yaml)
     print("\n".join(ret_mess))
 
@@ -86,14 +86,22 @@ def check(ctx, component_type, component, repo_name, version_tag):
     "test_command",
     help="Command that should be run after updating each component.",
 )
+@click.option(
+    "--git-commit",
+    "git_commit",
+    is_flag=True,
+    default=True,
+    help="Set to True by defualt. When set after each components update, git commit is performed in active branch.",
+)
 @click.pass_context
-def update(ctx, test_command):
+def update(ctx, test_command, git_commit):
     config = ctx.obj["config"]
     dry_run = ctx.obj["dry_run"]
     destination_file = ctx.obj["destination_file"]
     print_yaml = ctx.obj["print_yaml"]
 
     config.test_command = test_command.split() if test_command is not None else None
+    config.git_commit = git_commit
     config.read_from_yaml()
     config.check()
     config.save_config(destination_file, dry_run, print_yaml)
