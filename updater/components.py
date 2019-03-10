@@ -6,7 +6,6 @@ import datetime
 import yaml
 from pathlib import Path
 from rex import rex
-from plumbum import local
 from subprocess import run
 from abc import ABC, abstractmethod
 
@@ -59,7 +58,7 @@ class Config:
                 "component_type": comp["component-type"],
                 "component_name": component_name,
                 "current_version_tag": comp["current-version"],
-                "repo_name": comp.get("docker-repo", Component.REPO_DEFAULT)
+                "repo_name": comp.get("docker-repo", Component.REPO_DEFAULT),
             }
             last_index = self.add(factory.get(**params))
             self.components[last_index].repo_name = comp.get(
@@ -156,29 +155,41 @@ class Component(ABC):
             ret["exclude-versions"] = self.exclude_versions
         return ret
 
+    def name_version_tag(self, version_tag):
+        return version_tag
+
+    def count_occurence(self, string_to_search):
+        return string_to_search.count(self.name_version_tag(self.current_version_tag))
+
+    def replace(self, string_to_replace):
+        return string_to_replace.replace(
+            self.name_version_tag(self.current_version_tag),
+            self.name_version_tag(self.next_version_tag),
+        )
+
     def update_files(self, base_dir, dry_run=False):
-        sed = local["sed"]
         counter = 0
 
         for file_name in self.files:
             file = Path(Path(base_dir) / file_name)
-            path = str(file.absolute())
-            ret = sed[
-                "-n",
-                "s|" + self.current_version_tag + "|" + self.next_version_tag + "|p",
-                path,
-            ].run(retcode=None)
-            assert ret[0] == 0, "Error in version replacment: sed error %r\n" % str(ret)
-            assert ret[1] != "", (
-                "Error in version replacment: no replacement done for current_version: %r and next_version: %r.\n %r"
-                % (self.current_version_tag, self.next_version_tag, str(ret))
+            orig_content = file.read_text()
+            assert self.count_occurence(orig_content) <= 1, (
+                "To many verison of %s occurence in %s!"
+                % (self.current_version_tag, orig_content)
             )
             if not dry_run:
-                ret = sed[
-                    "-i",
-                    "s|" + self.current_version_tag + "|" + self.next_version_tag + "|",
-                    path,
-                ].run(retcode=None)
+                new_content = self.replace(orig_content)
+                assert new_content != orig_content, (
+                    "Error in version replacment: no replacement done for current_version"
+                    + ": %s and next_version: %s\nOrigin\n%s\nNew\n%s."
+                    % (
+                        self.current_version_tag,
+                        self.next_version_tag,
+                        orig_content,
+                        new_content,
+                    )
+                )
+                file.write_text(new_content)
             counter += 1
         return counter
 
@@ -234,6 +245,9 @@ class DockerImageComponent(Component):
         ret["docker-repo"] = self.repo_name
         return ret
 
+    def name_version_tag(self, version_tag):
+        return self.repo_name + "/" + self.component_name + ":" + version_tag
+
 
 class PypiComponent(Component):
     """docstring for ClassName"""
@@ -244,6 +258,9 @@ class PypiComponent(Component):
 
     def fetch_versions(self):
         return fetch_pypi_versions(self.component_name)
+
+    def name_version_tag(self, version_tag):
+        return self.component_name + "=" + version_tag
 
 
 class ComponentFactory:

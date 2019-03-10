@@ -6,18 +6,29 @@ from pathlib import Path
 
 FIXTURE_DIR = Path(".").absolute() / "tests/test_files"
 
-logspout = {
-    "component_type": "docker-image",
-    "repo_name": "gliderlabs",
-    "component_name": "logspout",
-    "current_version_tag": "v3.1",
-}
-
-glances = {
-    "component_type": "docker-image",
-    "repo_name": "nicolargo",
-    "component_name": "glances",
-    "current_version_tag": "v2.11.1",
+COMP = {
+    "logspout": {
+        "component_type": "docker-image",
+        "repo_name": "gliderlabs",
+        "component_name": "logspout",
+        "current_version_tag": "v3.1",
+    },
+    "glances": {
+        "component_type": "docker-image",
+        "repo_name": "nicolargo",
+        "component_name": "glances",
+        "current_version_tag": "v2.11.1",
+    },
+    "Django": {
+        "component_type": "pypi",
+        "component_name": "Django",
+        "current_version_tag": "2.1.2",
+    },
+    "requests": {
+        "component_type": "pypi",
+        "component_name": "requests",
+        "current_version_tag": "2.20.0",
+    },
 }
 
 
@@ -83,8 +94,8 @@ def test_fetch_pypi_versions_no_repo():
 
 
 def test_component_checker_newer_version():
-    glances_old = {**glances, "current_version_tag": "v2.0.0"}
-    glances_new = {**glances, "current_version_tag": "v100.0.0"}
+    glances_old = {**COMP["glances"], "current_version_tag": "v2.0.0"}
+    glances_new = {**COMP["glances"], "current_version_tag": "v100.0.0"}
     checker = components.factory.get(**glances_old)
     assert checker.check() is True
     checker = components.factory.get(**glances_new)
@@ -92,33 +103,50 @@ def test_component_checker_newer_version():
 
 
 def test_update_file_with_version(tmpdir):
-    comp = components.factory.get(**logspout)
+    comp = components.factory.get(**COMP["logspout"])
     comp.files = ["file1"]
     comp.next_version = parse("v3.3")
     comp.next_version_tag = "v3.3"
     file1 = tmpdir / "file1"
-    file1.write_text("v3.1", encoding=None)
+    file1.write_text("gliderlabs/logspout:v3.1", encoding=None)
     comp.update_files(tmpdir)
     assert "v3.3" in file1.read_text(encoding=None)
 
 
 def test_update_file_with_version_wrong_file(tmpdir):
-    comp = components.factory.get(**logspout)
+    comp = components.factory.get(**COMP["logspout"])
     comp.files = ["file2"]
     comp.next_version = parse("v3.3")
     comp.next_version_tag = "v3.3"
     file1 = tmpdir / "file1"
     file1.write_text("v3.1", encoding=None)
-    with pytest.raises(AssertionError) as excinfo:
+    with pytest.raises(FileNotFoundError) as excinfo:
         comp.update_files(tmpdir)
     assert "No such file or directory" in str(excinfo.value)
 
 
 def test_update_file_with_version_not_updated(tmpdir):
-    comp = components.factory.get(**logspout)
+    comp = components.factory.get(**COMP["logspout"])
     comp.files = ["file1"]
     file1 = tmpdir / "file1"
     file1.write_text("v3.3", encoding=None)
     with pytest.raises(AssertionError) as excinfo:
         comp.update_files(tmpdir)
     assert "no replacement done for" in str(excinfo.value)
+
+
+def test_update_file_with_two_components_with_same_version_tag_pypi(tmpdir):
+    comp = components.factory.get(**COMP["Django"])
+    comp.next_version_tag = "2.2.2"
+    comp.files = ["file1"]
+    file1 = tmpdir / "file1"
+    file1.write_text("Django=2.1.2\nrequests=2.1.2", encoding=None)
+    comp.update_files(tmpdir)
+    assert "requests=2.1.2" in file1.read_text(encoding=None)
+
+
+def test_docker_image_name_version_tag():
+    comp = components.factory.get(**COMP["glances"])
+    assert (
+        comp.name_version_tag(comp.current_version_tag) == "nicolargo/glances:v2.11.1"
+    )
