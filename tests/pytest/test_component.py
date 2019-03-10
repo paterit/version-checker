@@ -39,8 +39,8 @@ def test_parse_compare_versions():
     )
 
 
-def check_docker_versions(repo_name, component_name, version_tag):
-    tags = components.fetch_versions(repo_name, component_name)
+def check_docker_images_versions(repo_name, component_name, version_tag):
+    tags = components.fetch_docker_images_versions(repo_name, component_name)
     assert len(tags) > 0, "Empty list returned %r" % tags
     assert version_tag in tags, "For %r/%r lack of version: %r in tags %r" % (
         repo_name,
@@ -50,13 +50,35 @@ def check_docker_versions(repo_name, component_name, version_tag):
     )
 
 
+def check_pypi_versions(component_name, version_tag):
+    tags = components.fetch_pypi_versions(component_name)
+    assert len(tags) > 0, "Empty list returned %r" % tags
+    assert version_tag in tags, "For %r lack of version: %r in tags %r" % (
+        component_name,
+        version_tag,
+        tags,
+    )
+
+
 def test_fetch_docker_images_versions():
-    check_docker_versions("gliderlabs", "logspout", "v3.1")
-    check_docker_versions("nicolargo", "glances", "v2.11.1")
+    check_docker_images_versions("gliderlabs", "logspout", "v3.1")
+    check_docker_images_versions("nicolargo", "glances", "v2.11.1")
 
 
-def test_fetch_versions_no_repo():
-    tags = components.fetch_versions("repo_not_exists", "image_not_exists")
+def test_fetch_pypi_versions():
+    check_pypi_versions("Django", "2.1.2")
+    check_pypi_versions("requests", "2.20.0")
+
+
+def test_fetch_docker_images_versions_no_repo():
+    tags = components.fetch_docker_images_versions(
+        "repo_not_exists", "image_not_exists"
+    )
+    assert len(tags) == 0, "Empty list returned %r" % tags
+
+
+def test_fetch_pypi_versions_no_repo():
+    tags = components.fetch_pypi_versions("package_not_exists")
     assert len(tags) == 0, "Empty list returned %r" % tags
 
 

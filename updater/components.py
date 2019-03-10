@@ -8,6 +8,7 @@ from pathlib import Path
 from rex import rex
 from plumbum import local
 from subprocess import run
+from abc import ABC, abstractmethod
 
 
 class Config:
@@ -20,6 +21,7 @@ class Config:
 
     def add(self, component):
         self.components.append(component)
+        return self.components.index(self.components[-1])
 
     def components_to_dict(self):
         return {
@@ -52,23 +54,27 @@ class Config:
             self.components = []
 
         for component_name in components_dict:
-            component = components_dict[component_name]
-            self.add(
-                factory.get(
-                    component_type="docker-image",
-                    repo_name=component["docker-repo"],
-                    component_name=component_name,
-                    current_version_tag=component["current-version"],
-                )
+            comp = components_dict[component_name]
+            params = {
+                "component_type": comp["component-type"],
+                "component_name": component_name,
+                "current_version_tag": comp["current-version"],
+                "repo_name": comp.get("docker-repo", Component.REPO_DEFAULT)
+            }
+            last_index = self.add(factory.get(**params))
+            self.components[last_index].repo_name = comp.get(
+                "docker-repo", Component.REPO_DEFAULT
             )
-            self.components[-1].prefix = component.get(
+            self.components[last_index].prefix = comp.get(
                 "prefix", Component.PREFIX_DEFAULT
             )
-            self.components[-1].filter = component.get(
+            self.components[last_index].filter = comp.get(
                 "filter", Component.FILTER_DEFAULT
             )
-            self.components[-1].files = component.get("files", Component.FILES_DEFAULT)
-            self.components[-1].exclude_versions = component.get(
+            self.components[last_index].files = comp.get(
+                "files", Component.FILES_DEFAULT
+            )
+            self.components[last_index].exclude_versions = comp.get(
                 "exclude-versions", Component.EXLUDE_VERSIONS_DEFAULT
             )
 
@@ -92,15 +98,16 @@ class Config:
         return counter
 
 
-class Component:
+class Component(ABC):
 
     PREFIX_DEFAULT = None
     FILTER_DEFAULT = "/.*/"
     FILES_DEFAULT = None
     EXLUDE_VERSIONS_DEFAULT = []
+    REPO_DEFAULT = None
 
-    def __init__(self, repo_name, component_name, current_version_tag):
-        self.repo_name = repo_name
+    def __init__(self, component_name, current_version_tag):
+        self.component_type = None
         self.component_name = component_name
         self.current_version_tag = current_version_tag
         self.current_version = parse(current_version_tag)
@@ -116,8 +123,12 @@ class Component:
     def newer_version_exists(self):
         return self.next_version > self.current_version
 
+    @abstractmethod
+    def fetch_versions():
+        pass
+
     def check(self):
-        self.version_tags = fetch_versions(self.repo_name, self.component_name)
+        self.version_tags = self.fetch_versions()
         self.next_version = max(
             [
                 parse(tag)
@@ -131,7 +142,7 @@ class Component:
 
     def to_dict(self):
         ret = {
-            "docker-repo": self.repo_name,
+            "component-type": self.component_type,
             "current-version": self.current_version_tag,
             "next-version": self.next_version_tag,
         }
@@ -173,12 +184,12 @@ class Component:
 
 
 @cachier(stale_after=datetime.timedelta(days=3))
-def fetch_versions(repo_name, component):
-    logger.info(repo_name + ":" + component + " - NOT CACHED")
+def fetch_docker_images_versions(repo_name, component_name):
+    logger.info(repo_name + ":" + component_name + " - NOT CACHED")
     payload = {
         "service": "registry.docker.io",
         "scope": "repository:{repo}/{image}:pull".format(
-            repo=repo_name, image=component
+            repo=repo_name, image=component_name
         ),
     }
 
@@ -191,20 +202,37 @@ def fetch_versions(repo_name, component):
     token = j["token"]
     h = {"Authorization": "Bearer {}".format(token)}
     r = requests.get(
-        "https://index.docker.io/v2/{}/{}/tags/list".format(repo_name, component),
+        "https://index.docker.io/v2/{}/{}/tags/list".format(repo_name, component_name),
         headers=h,
     )
     return r.json().get("tags", [])
+
+
+@cachier(stale_after=datetime.timedelta(days=3))
+def fetch_pypi_versions(component_name):
+    r = requests.get("https://pypi.org/pypi/{}/json".format(component_name))
+    # it returns 404 if there is no such a package
+    if not r.status_code == 200:
+        return list()
+    else:
+        return list(r.json().get("releases", {}).keys())
 
 
 class DockerImageComponent(Component):
     """docstring for ClassName"""
 
     def __init__(self, repo_name, component_name, current_version_tag):
-        super(DockerImageComponent, self).__init__(
-            repo_name, component_name, current_version_tag
-        )
+        super(DockerImageComponent, self).__init__(component_name, current_version_tag)
         self.repo_name = repo_name
+        self.component_type = "docker-image"
+
+    def fetch_versions(self):
+        return fetch_docker_images_versions(self.repo_name, self.component_name)
+
+    def to_dict(self):
+        ret = super(DockerImageComponent, self).to_dict()
+        ret["docker-repo"] = self.repo_name
+        return ret
 
 
 class PypiComponent(Component):
@@ -212,6 +240,10 @@ class PypiComponent(Component):
 
     def __init__(self, component_name, current_version_tag, **_ignored):
         super(PypiComponent, self).__init__(component_name, current_version_tag)
+        self.component_type = "pypi"
+
+    def fetch_versions(self):
+        return fetch_pypi_versions(self.component_name)
 
 
 class ComponentFactory:

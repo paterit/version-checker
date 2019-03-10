@@ -13,10 +13,11 @@ def plumbum_msg(command_exit):
         command_exit[2],
     )
 
-
-@given(u"Docker image name {repo_name}/{component} and {version} as parameters")
-def step_impl(context, repo_name, component, version):
-    context.docker_image["component"] = component
+@given(u"Component with {component_type}, {repo_name}, {component_name} and {version} as parameters")
+# @given(u"Docker image name {repo_name}/{component} and {version} as parameters")
+def step_impl(context, component_type, repo_name, component_name, version):
+    context.docker_image["component_type"] = component_type
+    context.docker_image["component_name"] = component_name
     context.docker_image["repo_name"] = repo_name
     context.docker_image["version"] = version
 
@@ -26,8 +27,8 @@ def step_impl(context):
     ret = python[
         "check_version.py",
         "check",
-        "--type=docker-image",
-        "--component=" + context.docker_image["component"],
+        "--type=" + context.docker_image["component_type"],
+        "--component=" + context.docker_image["component_name"],
         "--repo_name=" + context.docker_image["repo_name"],
         "--version_tag=" + context.docker_image["version"],
     ].run(retcode=None)

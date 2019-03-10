@@ -45,5 +45,5 @@ def step_impl(context):
         "Test OK" in context.response[1]
     ), "'Test OK' is not found in output.\n" + plumbum_msg(context.response)
     assert (
-        context.response[1].count("Test OK") == 2
+        context.response[1].count("Test OK") == 4
     ), "To few occurenc of 'Test OK'\n" + plumbum_msg(context.response)

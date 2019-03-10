@@ -1,13 +1,27 @@
 glances:
+  component-type: docker-image
   current-version: v2.11.0
   docker-repo: nicolargo
   filter: /^v\d+\.\d+\.\d+$/
   prefix: v
   files: [glances/Dockerfile-glances, glances/script.sh]
 logspout:
+  component-type: docker-image
   current-version: v3.1
   docker-repo: gliderlabs
   filter: /^v\d+\.\d+\.\d+$/
   prefix: v
   files: [logspout/Dockerfile-logspout]
   exclude-versions: [v3.2.6]
+Django:
+  component-type: pypi
+  current-version: 2.1.2
+  filter: /^\d+\.\d+\.\d+$/
+  files: [app/requirements.txt]
+requests:
+  component-type: pypi
+  current-version: 2.20.0
+  filter: /^\d+\.\d+\.\d+$/
+  files: [app/requirements.txt]
+
+
