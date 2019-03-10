@@ -13,7 +13,10 @@ def plumbum_msg(command_exit):
         command_exit[2],
     )
 
-@given(u"Component with {component_type}, {repo_name}, {component_name} and {version} as parameters")
+
+@given(
+    u"Component with {component_type}, {repo_name}, {component_name} and {version} as parameters"
+)
 # @given(u"Docker image name {repo_name}/{component} and {version} as parameters")
 def step_impl(context, component_type, repo_name, component_name, version):
     context.docker_image["component_type"] = component_type

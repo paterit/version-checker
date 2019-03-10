@@ -135,7 +135,12 @@ def config_from_copy_of_test_dir():
 
 def test_update_components_files():
     (test_dir, config) = config_from_copy_of_test_dir()
-    assert config.check() == [("glances", True), ("logspout", True), ('Django', True), ('requests', True)]
+    assert config.check() == [
+        ("glances", True),
+        ("logspout", True),
+        ("Django", True),
+        ("requests", True),
+    ]
     assert config.update_files(test_dir) == 5
 
 
@@ -178,7 +183,12 @@ def test_exclude_versions_param():
 def test_update_components_files_with_testing_positive(capfd):
     (test_dir, config) = config_from_copy_of_test_dir()
     config.test_command = ["make", "test"]
-    assert config.check() == [("glances", True), ("logspout", True), ('Django', True), ('requests', True)]
+    assert config.check() == [
+        ("glances", True),
+        ("logspout", True),
+        ("Django", True),
+        ("requests", True),
+    ]
     assert config.update_files(test_dir) == 5
     captured = capfd.readouterr()
     assert captured.out.count("Test OK") == 4, captured.out
@@ -187,9 +197,14 @@ def test_update_components_files_with_testing_positive(capfd):
 def test_update_components_files_with_testing_negative(capfd):
     (test_dir, config) = config_from_copy_of_test_dir()
     config.test_command = ["make", "test-fail"]
-    assert config.check() == [("glances", True), ("logspout", True), ('Django', True), ('requests', True)]
+    assert config.check() == [
+        ("glances", True),
+        ("logspout", True),
+        ("Django", True),
+        ("requests", True),
+    ]
     with pytest.raises(AssertionError) as excinfo:
         config.update_files(test_dir)
-    assert "returncode=2" in str(excinfo.value)
+    assert "Error" in str(excinfo.value)
     captured = capfd.readouterr()
     assert "Test KO" in captured.out, captured.out
