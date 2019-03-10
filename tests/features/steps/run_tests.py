@@ -41,9 +41,9 @@ def step_impl(context):
 
 @then(u"run test command and stop in case of failure")
 def step_impl(context):
-    assert "Test OK" in context.response[1], (
-        "'Test OK' is not found in output.\n" + plumbum_msg(context.response)
-    )
     assert (
-        context.response[1].count("Test OK") == 2
+        "Test OK" in context.response[1]
+    ), "'Test OK' is not found in output.\n" + plumbum_msg(context.response)
+    assert (
+        context.response[1].count("Test OK") == 4
     ), "To few occurenc of 'Test OK'\n" + plumbum_msg(context.response)

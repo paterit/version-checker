@@ -1,6 +1,6 @@
 from pathlib import Path
 import click
-from updater.components import ComponentsConfig, Component
+from updater import components
 
 
 @click.group()
@@ -36,7 +36,7 @@ def cli(ctx, file, destination_file, dry_run, print_yaml):
     else:
         config_file = None
 
-    ctx.obj["config"] = ComponentsConfig(components_yaml_file=config_file)
+    ctx.obj["config"] = components.Config(components_yaml_file=config_file)
     ctx.obj["config_file"] = config_file
     ctx.obj["destination_file"] = destination_file
     ctx.obj["dry_run"] = dry_run
@@ -44,6 +44,9 @@ def cli(ctx, file, destination_file, dry_run, print_yaml):
 
 
 @cli.command()
+@click.option(
+    "--type", "component_type", help="Component type: docker-image or pypi package."
+)
 @click.option("--component", help="Component name to version veryfication.")
 @click.option("--repo_name", help="Repository name if component is docker image.")
 @click.option(
@@ -51,7 +54,7 @@ def cli(ctx, file, destination_file, dry_run, print_yaml):
     help="Version tag eg. v2.3.0 against which new version check will be run.",
 )
 @click.pass_context
-def check(ctx, component, repo_name, version_tag):
+def check(ctx, component_type, component, repo_name, version_tag):
     config = ctx.obj["config"]
     # config_file = ctx.obj["config_file"]
     destination_file = ctx.obj["destination_file"]
@@ -62,7 +65,8 @@ def check(ctx, component, repo_name, version_tag):
 
     if component is not None:
         config.add(
-            Component(
+            components.factory.get(
+                component_type=component_type,
                 repo_name=repo_name,
                 component_name=component,
                 current_version_tag=version_tag,
