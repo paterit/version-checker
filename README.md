@@ -1,17 +1,17 @@
-# Starters for python projects
+# Version updater for components in your codebase
 
 ## Problem to solve
 
-Common way to start python project without limitation from current OS Python (eg. hard to run even virtualenv for Python 3.7 in Ubuntu 16.04 as it supports up to Python 3.5).
-The only things you need is Docker engine istalled. Make is nice to have but you can copy commands from Makefile.
+In project where there are many components to track new versions (docker images and pypi packages) this tool automates finding new versions, running tests and commit changes to git.
 
 ## TL;DR
 
-1. `git clone git@github.com:paterit/starter-selenium.git your_project_name`
-1. `cd your_project_name`
-1. `rm -rf .git`
-1. `make build`
-1. `git init`
-1. `git add .`
-1. `git commit -m "Initial commit"`
-1. `subl starter.sublime-project`
+Create YAML file with definition of your components (see example in `tests/test_files/components.yaml`). Place components.yaml in the root of your project directory and run:
+
+`python check_version.py --file=/path/to/your/components.yaml --dry-run check`
+
+It will, for each defined component:
+1. Check if there are new versions of your components available
+1. Replace in all files version numbers to the newest one
+1. Run tests
+1. Add and commit changes to git

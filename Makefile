@@ -9,7 +9,7 @@ run:
 	@docker exec -it -w `pwd` version-checker pipenv run \
 		python check_version.py \
 		--file=tests/test_files/components.yaml \
-		--destination-file=tmp_comp.yaml \
+		--dry-run \
 		check
 
 help:

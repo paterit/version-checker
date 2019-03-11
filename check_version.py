@@ -45,7 +45,10 @@ def cli(ctx, file, destination_file, dry_run, print_yaml):
 
 @cli.command()
 @click.option(
-    "--type", "component_type", help="Component type: docker-image or pypi package."
+    "--type",
+    "component_type",
+    help="Component type: docker-image or pypi package.",
+    type=click.Choice(["docker-image", "pypi"]),
 )
 @click.option("--component", help="Component name to version veryfication.")
 @click.option("--repo_name", help="Repository name if component is docker image.")
@@ -55,6 +58,7 @@ def cli(ctx, file, destination_file, dry_run, print_yaml):
 )
 @click.pass_context
 def check(ctx, component_type, component, repo_name, version_tag):
+    """Check if new versions of defined components are available."""
     config = ctx.obj["config"]
     # config_file = ctx.obj["config_file"]
     destination_file = ctx.obj["destination_file"]
@@ -95,6 +99,7 @@ def check(ctx, component_type, component, repo_name, version_tag):
 )
 @click.pass_context
 def update(ctx, test_command, git_commit):
+    """Update files with version numbers, run test and commit changes."""
     config = ctx.obj["config"]
     dry_run = ctx.obj["dry_run"]
     destination_file = ctx.obj["destination_file"]

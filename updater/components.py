@@ -42,7 +42,7 @@ class Config:
             elif self.config_file:
                 self.save_to_yaml()
 
-        if dry_run or print_yaml:
+        if print_yaml:
             print(yaml.dump(self.components_to_dict()))
 
     def read_from_yaml(self, file=None, clear_components=True):
