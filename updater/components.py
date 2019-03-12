@@ -121,6 +121,9 @@ class Config:
                 self.commit_changes(component, dry_run)
         return counter
 
+    def get_versions_info(self):
+        return [c.component_name for c in self.components]
+
 
 class Component(ABC):
 
@@ -129,6 +132,7 @@ class Component(ABC):
     FILES_DEFAULT = None
     EXLUDE_VERSIONS_DEFAULT = []
     REPO_DEFAULT = None
+    LATEST_TAGS = ['latest',]
 
     def __init__(self, component_name, current_version_tag):
         self.component_type = None
@@ -145,22 +149,27 @@ class Component(ABC):
         super().__init__()
 
     def newer_version_exists(self):
-        return self.next_version > self.current_version
+        if self.current_version_tag in self.LATEST_TAGS:
+            return False
+        else:
+            return self.next_version > self.current_version
 
     @abstractmethod
     def fetch_versions():
         pass
 
     def check(self):
-        self.version_tags = self.fetch_versions()
-        self.next_version = max(
-            [
-                parse(tag)
-                for tag in self.version_tags
-                if (tag == rex(self.filter)) and tag not in self.exclude_versions
-            ]
-        )
-        self.next_version_tag = (self.prefix or "") + str(self.next_version)
+        if self.current_version_tag not in self.LATEST_TAGS:
+            self.version_tags = self.fetch_versions()
+
+            self.next_version = max(
+                [
+                    parse(tag)
+                    for tag in self.version_tags
+                    if (tag == rex(self.filter)) and tag not in self.exclude_versions
+                ]
+            )
+            self.next_version_tag = (self.prefix or "") + str(self.next_version)
 
         return self.newer_version_exists()
 

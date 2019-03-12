@@ -56,8 +56,13 @@ def cli(ctx, file, destination_file, dry_run, print_yaml):
     "--version_tag",
     help="Version tag eg. v2.3.0 against which new version check will be run.",
 )
+@click.option(
+    "--verbose",
+    is_flag=True,
+    help="Print detailed info for each component about new version avaialble.",
+)
 @click.pass_context
-def check(ctx, component_type, component, repo_name, version_tag):
+def check(ctx, component_type, component, repo_name, version_tag, verbose):
     """Check if new versions of defined components are available."""
     config = ctx.obj["config"]
     # config_file = ctx.obj["config_file"]
@@ -81,6 +86,7 @@ def check(ctx, component_type, component, repo_name, version_tag):
     ret_mess.append("%d components to check" % len(config.components))
     ret_mess.append("%d components to update" % config.count_components_to_update())
     config.save_config(destination_file, dry_run, print_yaml)
+    ret_mess.extend(config.get_versions_info())
     print("\n".join(ret_mess))
 
 

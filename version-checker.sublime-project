@@ -5,7 +5,7 @@
 			"file_regex": "^[ ]*File \"(...*?)\", line ([0-9]*)",
 			"name": "Anaconda Python Builder",
 			"selector": "source.python",
-			"shell_cmd": "\"python\" -u \"$file\""
+			"shell_cmd": "\"/home/wsemik/workspace/dmt/version-checker/.venv/bin/python\" -u \"$file\""
 		}
 	],
 	"folders":
@@ -16,11 +16,11 @@
 	],
 	"settings":
 	{
-		"validate_imports": true,
 		"complete_parameters": false,
 		"display_signatures": true,
 		"enable_signatures_tooltip": true,
 		"merge_signatures_and_doc": true,
-		"python_interpreter": "tcp://localhost:19360?pathmap=/home/wsemik/workspace/dmt/version-checker,/home/wsemik/workspace/dmt/version-checker",
+		"python_interpreter": "/home/wsemik/workspace/dmt/version-checker/.venv/bin/python",
+		"validate_imports": true
 	}
 }
