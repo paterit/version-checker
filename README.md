@@ -41,19 +41,19 @@ updater [OPTIONS] COMMAND [ARGS]...
 ### Options
 
 
-#### --file( <file>)
+#### --file <file>
 YAML file with components configuration. If not present other options for ‘check’ command are required.
 
 
-#### --destination-file( <destination_file>)
+#### --destination-file <destination_file>
 If this option is given components configuration with new versions will be wrtten here.
 
 
-#### --dry-run()
+#### --dry-run
 If set no changes to any files are written.
 
 
-#### --print()
+#### --print
 Config is printed to stdout at the end.
 
 #### check
@@ -67,23 +67,23 @@ updater check [OPTIONS]
 ### Options
 
 
-#### --type( <component_type>)
+#### --type <component_type>
 Component type: docker-image or pypi package.
 
 
-#### --component( <component>)
+#### --component <component>
 Component name to version veryfication.
 
 
-#### --repo_name( <repo_name>)
+#### --repo_name <repo_name>
 Repository name if component is docker image.
 
 
-#### --version_tag( <version_tag>)
+#### --version_tag <version_tag>
 Version tag eg. v2.3.0 against which new version check will be run.
 
 
-#### --verbose()
+#### --verbose
 Print detailed info for each component about new version avaialble.
 
 #### update
@@ -97,13 +97,13 @@ updater update [OPTIONS]
 ### Options
 
 
-#### --test-command( <test_command>)
+#### --test-command <test_command>
 Command that should be run after updating each component.
 
 
-#### --test-dir( <test_dir>)
+#### --test-dir <test_dir>
 If test-command param is given, this will be the context dir to run it.
 
 
-#### --git-commit()
+#### --git-commit
 When set after each components update, git commit is performed in active branch.
