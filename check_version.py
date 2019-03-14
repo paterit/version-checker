@@ -1,8 +1,10 @@
-from pathlib import Path
-import click
-from updater import components
 import pprint
+from pathlib import Path
+
+import click
 from loguru import logger
+
+from updater import components
 
 
 @click.group()

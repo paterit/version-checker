@@ -1,18 +1,20 @@
+import copy
+import datetime
+from abc import ABC, abstractmethod
+from pathlib import Path
+from subprocess import run
+
+import click
+import maya
+import requests
+import yaml
+from cachier import cachier
 from loguru import logger
 from packaging.version import parse
-import requests
-from cachier import cachier
-import datetime
-import yaml
-from pathlib import Path
-from rex import rex
-from subprocess import run
-from abc import ABC, abstractmethod
 from plumbum import local
+from rex import rex
+
 from updater import git_check, plumbum_msg
-import click
-import copy
-import maya
 
 
 class Config:
