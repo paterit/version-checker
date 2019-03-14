@@ -2,6 +2,7 @@ from pathlib import Path
 import click
 from updater import components
 import pprint
+from loguru import logger
 
 
 @click.group()
@@ -130,6 +131,9 @@ def update(ctx, test_command, test_dir, git_commit):
         pp = pprint.PrettyPrinter(indent=4)
         click.echo(click.style("Something went wrong!!!", "red"))
         pp.pprint(config.status)
+    except Exception as exception:
+        # Output unexpected Exceptions.
+        logger.error(str(exception))
 
 
 if __name__ == "__main__":

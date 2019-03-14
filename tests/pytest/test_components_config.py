@@ -63,7 +63,8 @@ def test_exlude_versions_to_yaml(tmp_path):
     config.components[0].exclude_versions = ["v3.2.6"]
     config.save_to_yaml()
     file_content = config_file.read_text()
-    assert "exclude-versions: [v3.2.6]" in file_content
+    assert "exclude-versions:" in file_content
+    assert "v3.2.6" in file_content
 
 
 def test_save_files_to_yaml(tmp_path):
@@ -73,7 +74,8 @@ def test_save_files_to_yaml(tmp_path):
     config.components[0].files = ["file1", "file2"]
     config.save_to_yaml()
     file_content = config_file.read_text()
-    assert "[file1, file2]" in file_content
+    assert "file1" in file_content
+    assert "file2" in file_content
 
 
 def test_use_filter_for_component_to_yaml(tmp_path):
