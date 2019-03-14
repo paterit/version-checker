@@ -1,5 +1,5 @@
 run:
-	pipenv run \
+	@pipenv run \
 		python check_version.py \
 		--file=tests/test_files/components.yaml \
 		--dry-run \

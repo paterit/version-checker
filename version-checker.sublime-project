@@ -21,6 +21,10 @@
 		"enable_signatures_tooltip": true,
 		"merge_signatures_and_doc": true,
 		"python_interpreter": "/home/wsemik/workspace/dmt/version-checker/.venv/bin/python",
-		"validate_imports": true
-	}
+		"validate_imports": true,
+		"pep8_ignore":
+		[
+		    "W503"
+		]
+	},
 }

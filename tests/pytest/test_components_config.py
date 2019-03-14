@@ -129,6 +129,7 @@ def config_from_copy_of_test_dir():
     test_dir = Path(tempfile.TemporaryDirectory().name)
     shutil.copytree(FIXTURE_DIR, test_dir)
     config = components.Config(test_dir / "components.yaml")
+    config.git_commit = False
     config.read_from_yaml()
     return test_dir, config
 

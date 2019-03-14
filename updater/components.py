@@ -10,16 +10,33 @@ from subprocess import run
 from abc import ABC, abstractmethod
 from plumbum import local
 from updater import git_check, plumbum_msg
+import click
+import copy
+import maya
 
 
 class Config:
+
+    STATE_FILES_UPDATED = "STATE_FILES_UPDATED"
+    STATE_TEST_RUN = "STATE_TEST_RUN"
+    STATE_CONFIG_SAVED = "STATE_CONFIG_SAVED"
+    STATE_COMMITED_CHANGES = "STATE_COMMITED_CHANGES"
+
     def __init__(self, components_yaml_file=None):
         self.components = []
         self.config_file = components_yaml_file
         if self.config_file and not self.config_file.is_file():
             logger.info("Config file %r does not exists." % str(self.config_file))
         self.test_command = None
+        self.test_dir = None
         self.git_commit = True
+        self.status = {}
+
+    def update_status(self, component, step):
+        if component.component_name not in self.status:
+            self.status["component.component_name"] = {}
+        comp = self.status["component.component_name"]
+        comp[step] = str(maya.now())
 
     def add(self, component):
         self.components.append(component)
@@ -89,9 +106,15 @@ class Config:
     def check(self):
         return [(comp.component_name, comp.check()) for comp in self.components]
 
-    def run_tests(self):
-        ret = run(self.test_command, cwd=self.config_file.parent)
-        assert ret.returncode == 0, "Error " + str(ret)
+    def run_tests(self, processed_component):
+        ret = run(self.test_command, cwd=(self.test_dir or self.config_file.parent))
+        assert ret.returncode == 0, (
+            click.style("Error!", fg="red")
+            + "( "
+            + processed_component.component_name
+            + " ) "
+            + str(ret)
+        )
 
     def commit_changes(self, component, dry_run):
         git = local["git"]
@@ -102,6 +125,7 @@ class Config:
                 set(changed_files)
             ), "Not all SRC files are in git changed files.\n" + plumbum_msg(ret)
             if not dry_run:
+                git_check(git["add", self.config_file.name].run(retcode=None))
                 for file_name in component.files:
                     git_check(git["add", file_name].run(retcode=None))
                 git_check(
@@ -115,14 +139,40 @@ class Config:
         for component in self.components:
             if component.newer_version_exists():
                 counter += component.update_files(base_dir, dry_run)
+            self.update_status(component, self.STATE_FILES_UPDATED)
             if self.test_command:
-                self.run_tests()
-            if not self.git_commit:
+                self.run_tests(component)
+                self.update_status(component, self.STATE_TEST_RUN)
+
+            if not dry_run:
+                component.current_version = copy.deepcopy(component.next_version)
+                component.current_version_tag = copy.deepcopy(
+                    component.next_version_tag
+                )
+            self.save_config(dry_run=dry_run)
+            self.update_status(component, self.STATE_CONFIG_SAVED)
+
+            if self.git_commit:
                 self.commit_changes(component, dry_run)
+                self.update_status(component, self.STATE_COMMITED_CHANGES)
+
         return counter
 
     def get_versions_info(self):
-        return [c.component_name for c in self.components]
+        new = [
+            c.component_name
+            + " - current: "
+            + c.current_version_tag
+            + " next: "
+            + (
+                click.style(c.next_version_tag, fg="green")
+                if c.newer_version_exists()
+                else click.style(c.next_version_tag, fg="yellow")
+            )
+            for c in self.components
+        ]
+        new.sort()
+        return new
 
 
 class Component(ABC):
@@ -132,7 +182,7 @@ class Component(ABC):
     FILES_DEFAULT = None
     EXLUDE_VERSIONS_DEFAULT = []
     REPO_DEFAULT = None
-    LATEST_TAGS = ['latest',]
+    LATEST_TAGS = ["latest"]
 
     def __init__(self, component_name, current_version_tag):
         self.component_type = None
@@ -179,6 +229,8 @@ class Component(ABC):
             "current-version": self.current_version_tag,
             "next-version": self.next_version_tag,
         }
+        # if self.current_version_tag != self.next_version_tag:
+        #     ret["next-version"] = self.next_version_tag
         if self.prefix != self.PREFIX_DEFAULT:
             ret["prefix"] = self.prefix
         if self.filter != self.FILTER_DEFAULT:
@@ -214,7 +266,8 @@ class Component(ABC):
             if not dry_run:
                 new_content = self.replace(orig_content)
                 assert new_content != orig_content, (
-                    "Error in version replacment: no replacement done for current_version"
+                    "Error in version replacment for %s: no replacement done for current_version"
+                    % self.component_name
                     + ": %s and next_version: %s\nOrigin\n%s\nNew\n%s."
                     % (
                         self.current_version_tag,
@@ -280,7 +333,7 @@ class DockerImageComponent(Component):
         return ret
 
     def name_version_tag(self, version_tag):
-        return self.repo_name + "/" + self.component_name + ":" + version_tag
+        return self.component_name + ":" + version_tag
 
 
 class PypiComponent(Component):
@@ -294,7 +347,7 @@ class PypiComponent(Component):
         return fetch_pypi_versions(self.component_name)
 
     def name_version_tag(self, version_tag):
-        return self.component_name + "=" + version_tag
+        return self.component_name + "==" + version_tag
 
 
 class ComponentFactory:

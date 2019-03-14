@@ -140,13 +140,11 @@ def test_update_file_with_two_components_with_same_version_tag_pypi(tmpdir):
     comp.next_version_tag = "2.2.2"
     comp.files = ["file1"]
     file1 = tmpdir / "file1"
-    file1.write_text("Django=2.1.2\nrequests=2.1.2", encoding=None)
+    file1.write_text("Django==2.1.2\nrequests==2.1.2", encoding=None)
     comp.update_files(tmpdir)
-    assert "requests=2.1.2" in file1.read_text(encoding=None)
+    assert "requests==2.1.2" in file1.read_text(encoding=None)
 
 
 def test_docker_image_name_version_tag():
     comp = components.factory.get(**COMP["glances"])
-    assert (
-        comp.name_version_tag(comp.current_version_tag) == "nicolargo/glances:v2.11.1"
-    )
+    assert comp.name_version_tag(comp.current_version_tag) == "glances:v2.11.1"

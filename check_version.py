@@ -1,6 +1,7 @@
 from pathlib import Path
 import click
 from updater import components
+import pprint
 
 
 @click.group()
@@ -86,8 +87,9 @@ def check(ctx, component_type, component, repo_name, version_tag, verbose):
     ret_mess.append("%d components to check" % len(config.components))
     ret_mess.append("%d components to update" % config.count_components_to_update())
     config.save_config(destination_file, dry_run, print_yaml)
-    ret_mess.extend(config.get_versions_info())
-    print("\n".join(ret_mess))
+    if verbose:
+        ret_mess.extend(config.get_versions_info())
+    click.echo("\n".join(ret_mess))
 
 
 @cli.command()
@@ -97,14 +99,19 @@ def check(ctx, component_type, component, repo_name, version_tag, verbose):
     help="Command that should be run after updating each component.",
 )
 @click.option(
+    "--test-dir",
+    "test_dir",
+    type=click.Path(),
+    help="If test-command param is given, this will be the context dir to run it.",
+)
+@click.option(
     "--git-commit",
     "git_commit",
     is_flag=True,
-    default=True,
-    help="Set to True by defualt. When set after each components update, git commit is performed in active branch.",
+    help="When set after each components update, git commit is performed in active branch.",
 )
 @click.pass_context
-def update(ctx, test_command, git_commit):
+def update(ctx, test_command, test_dir, git_commit):
     """Update files with version numbers, run test and commit changes."""
     config = ctx.obj["config"]
     dry_run = ctx.obj["dry_run"]
@@ -112,11 +119,17 @@ def update(ctx, test_command, git_commit):
     print_yaml = ctx.obj["print_yaml"]
 
     config.test_command = test_command.split() if test_command is not None else None
+    config.test_dir = test_dir
     config.git_commit = git_commit
     config.read_from_yaml()
     config.check()
     config.save_config(destination_file, dry_run, print_yaml)
-    config.update_files(config.config_file.parent, dry_run)
+    try:
+        config.update_files(config.config_file.parent, dry_run)
+    except AssertionError:
+        pp = pprint.PrettyPrinter(indent=4)
+        click.echo(click.style("Something went wrong!!!", "red"))
+        pp.pprint(config.status)
 
 
 if __name__ == "__main__":
