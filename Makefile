@@ -29,4 +29,10 @@ pipenv-clean:
 pipenv-install:
 	pipenv install -d
 
+package-dist:
+	python setup.py sdist bdist_wheel
+	python -m twine upload dist/*
+
+clean-package-dist:
+	rm -rf build dist updater.egg-info
 

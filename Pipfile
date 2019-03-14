@@ -8,6 +8,9 @@ black = "==18.6b4" # higher versions fail during installation
 ipdb = "==0.11"
 pytest= "==4.0.2"
 pytest-datafiles= "==2.0"
+sphinx = "==1.8.3"
+sphinx-click = "==2.0.1"
+sphinx-markdown-builder = "==0.4.1"
 
 [packages]
 loguru = "==0.2.5"
