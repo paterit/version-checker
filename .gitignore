@@ -8,3 +8,4 @@ dist
 build
 docs/build
 updater.egg-info
+__pycache__

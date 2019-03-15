@@ -39,7 +39,8 @@ def cli(ctx, file, destination_file, dry_run, print_yaml):
         config_file = Path.cwd().absolute().joinpath("components.yaml")
     else:
         config_file = None
-
+    if ctx.obj is None:
+        ctx.obj = {}
     ctx.obj["config"] = components.Config(components_yaml_file=config_file)
     ctx.obj["config_file"] = config_file
     ctx.obj["destination_file"] = destination_file
