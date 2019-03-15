@@ -147,12 +147,19 @@ def test_update_components_files():
     assert config.update_files(test_dir) == 5
 
 
-def test_dry_run_save_config():
+def test_save_config_dry_run():
     (test_dir, config) = config_from_copy_of_test_dir()
     content1 = config.config_file.read_text()
     config.save_config(destination_file=None, dry_run=True, print_yaml=False)
     content2 = config.config_file.read_text()
     assert content1 == content2
+
+
+def test_save_config_print_yaml(capfd):
+    (test_dir, config) = config_from_copy_of_test_dir()
+    config.save_config(destination_file=None, dry_run=True, print_yaml=True)
+    captured = capfd.readouterr()
+    assert "nicolargo" in captured.out, captured.out
 
 
 # TODO: Refactor access to components and its path - get rid of long components[0] things

@@ -130,9 +130,12 @@ def update(ctx, test_command, test_dir, git_commit):
     try:
         config.update_files(config.config_file.parent, dry_run)
     except AssertionError:
-        pp = pprint.PrettyPrinter(indent=4)
-        click.echo(click.style("Something went wrong!!!", "red"))
-        pp.pprint(config.status)
+        logger.error(
+            click.style("Something went wrong!!!", "red")
+            + "\n"
+            + "Config status:\n"
+            + pprint.pformat(config.status, indent=4)
+        )
     except Exception as exception:
         # Output unexpected Exceptions.
         logger.error(str(exception))

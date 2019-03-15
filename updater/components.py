@@ -2,6 +2,7 @@ import copy
 import datetime
 from abc import ABC, abstractmethod
 from pathlib import Path
+import pprint
 from subprocess import run
 
 import click
@@ -62,7 +63,7 @@ class Config:
                 self.save_to_yaml()
 
         if print_yaml:
-            print(yaml.dump(self.components_to_dict()))
+            click.echo(pprint.pformat(yaml.dump(self.components_to_dict()), indent=4))
 
     def read_from_yaml(self, file=None, clear_components=True):
         read_file = file or self.config_file
