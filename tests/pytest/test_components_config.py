@@ -4,6 +4,7 @@ from rex import rex
 import tempfile
 import shutil
 import pytest
+import os
 
 
 FIXTURE_DIR = Path(".").absolute() / "tests/test_files"
@@ -32,6 +33,27 @@ comp = {
         "current_version_tag": "2.20.0",
     },
 }
+
+
+def config_from_copy_of_test_dir():
+    test_dir = Path(tempfile.TemporaryDirectory().name)
+    shutil.copytree(FIXTURE_DIR, test_dir)
+    config = components.Config(test_dir / "components.yaml")
+    config.git_commit = False
+    config.read_from_yaml()
+    return test_dir, config
+
+
+def config_from_copy_of_test_dir_with_dir_param():
+    test_dir = Path(tempfile.TemporaryDirectory().name)
+    shutil.copytree(FIXTURE_DIR, test_dir)
+    os.makedirs(test_dir / "conf")
+    shutil.move(test_dir / "components.yaml", test_dir / "conf/components_new.yaml")
+    config = components.Config(test_dir / "conf/components_new.yaml")
+    config.project_dir = test_dir
+    config.git_commit = False
+    config.read_from_yaml()
+    return test_dir, config
 
 
 def test_save_next_version_to_yaml(tmp_path):
@@ -127,15 +149,6 @@ def test_components_to_dict(tmp_path):
     assert result == config.components_to_dict()
 
 
-def config_from_copy_of_test_dir():
-    test_dir = Path(tempfile.TemporaryDirectory().name)
-    shutil.copytree(FIXTURE_DIR, test_dir)
-    config = components.Config(test_dir / "components.yaml")
-    config.git_commit = False
-    config.read_from_yaml()
-    return test_dir, config
-
-
 def test_update_components_files():
     (test_dir, config) = config_from_copy_of_test_dir()
     assert config.check() == [
@@ -192,6 +205,20 @@ def test_exclude_versions_param():
 
 def test_update_components_files_with_testing_positive(capfd):
     (test_dir, config) = config_from_copy_of_test_dir()
+    config.test_command = ["make", "test"]
+    assert config.check() == [
+        ("glances", True),
+        ("logspout", True),
+        ("Django", True),
+        ("requests", True),
+    ]
+    assert config.update_files(test_dir) == 5
+    captured = capfd.readouterr()
+    assert captured.out.count("Test OK") == 4, captured.out
+
+
+def test_update_components_files_with_project_dir_param(capfd):
+    (test_dir, config) = config_from_copy_of_test_dir_with_dir_param()
     config.test_command = ["make", "test"]
     assert config.check() == [
         ("glances", True),

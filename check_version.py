@@ -114,8 +114,14 @@ def check(ctx, component_type, component, repo_name, version_tag, verbose):
     is_flag=True,
     help="When set after each components update, git commit is performed in active branch.",
 )
+@click.option(
+    "--project-dir",
+    "project_dir",
+    type=click.Path(),
+    help="If given, then it will be treated as a root dir for paths in config file.",
+)
 @click.pass_context
-def update(ctx, test_command, test_dir, git_commit):
+def update(ctx, test_command, test_dir, git_commit, project_dir):
     """Update files with version numbers, run test and commit changes."""
     config = ctx.obj["config"]
     dry_run = ctx.obj["dry_run"]
@@ -125,11 +131,12 @@ def update(ctx, test_command, test_dir, git_commit):
     config.test_command = test_command.split() if test_command is not None else None
     config.test_dir = test_dir
     config.git_commit = git_commit
+    config.project_dir = project_dir or config.project_dir
     config.read_from_yaml()
     config.check()
     config.save_config(destination_file, dry_run, print_yaml)
     try:
-        config.update_files(config.config_file.parent, dry_run)
+        config.update_files(config.project_dir, dry_run)
     except AssertionError:
         logger.error(
             click.style("Something went wrong!!!", "red")

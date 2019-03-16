@@ -28,8 +28,13 @@ class Config:
     def __init__(self, components_yaml_file=None):
         self.components = []
         self.config_file = components_yaml_file
-        if self.config_file and not self.config_file.is_file():
-            logger.info("Config file %r does not exists." % str(self.config_file))
+        if self.config_file:
+            if not self.config_file.is_file():
+                logger.error("Config file %s exists but it is not file." % str(self.config_file))
+            logger.info("Config file %s does not exists." % str(self.config_file))
+            self.project_dir = self.config_file.parent
+        else:
+            self.project_dir = None
         self.test_command = None
         self.test_dir = None
         self.git_commit = True
@@ -110,7 +115,7 @@ class Config:
         return [(comp.component_name, comp.check()) for comp in self.components]
 
     def run_tests(self, processed_component):
-        ret = run(self.test_command, cwd=(self.test_dir or self.config_file.parent))
+        ret = run(self.test_command, cwd=(self.test_dir or self.project_dir))
         assert ret.returncode == 0, (
             click.style("Error!", fg="red")
             + "( "
