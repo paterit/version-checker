@@ -4,6 +4,7 @@ from behave import *
 import tempfile
 import shutil
 from updater import plumbum_msg
+import os
 
 
 @given(u"New version of component is set in config file")
@@ -11,20 +12,34 @@ def step_impl(context):
     test_dir = Path(tempfile.TemporaryDirectory().name)
     shutil.copytree(Path.cwd() / "tests/test_files", test_dir)
     test_file = test_dir / "components.yaml"
-    assert Path.is_file(test_file) is True, "No components.yaml file in test dir."
+    assert Path.is_file(test_file), "No components.yaml file in test dir."
     context.update_versions["test_config_file"] = test_file
     context.update_versions["test_dir"] = test_dir
 
 
+@given(u"config file is in different location then project-dir param")
+def step_impl(context):
+    ctx = context.update_versions
+    ctx["project_dir"] = ctx["test_dir"]
+    os.makedirs(ctx["project_dir"] / "config")
+    shutil.move(ctx["test_dir"] / "components.yaml", ctx["project_dir"] / "config" / "components.yaml")
+    ctx["test_config_file"] = ctx["project_dir"] / "config" / "components.yaml"
+
+
 @when(u"script is run in update mode")
 def step_impl(context):
+    ctx = context.update_versions
     python = local["python"]
-    ret = python[
+    params = [
         "check_version.py",
-        "--file=" + str(context.update_versions["test_config_file"]),
+        "--file=" + str(ctx["test_config_file"]),
         "--print",
         "update",
-    ].run(retcode=None)
+    ]
+    if "project_dir" in ctx:
+        params.append("--project-dir=" + str(ctx["project_dir"]))
+    print(params)
+    ret = python[params].run(retcode=None)
     context.response = str(ret)
     assert ret[0] == 0, "Error returned by script:\n" + plumbum_msg(ret)
 

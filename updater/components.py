@@ -30,7 +30,9 @@ class Config:
         self.config_file = components_yaml_file
         if self.config_file:
             if not self.config_file.is_file():
-                logger.error("Config file %s exists but it is not file." % str(self.config_file))
+                logger.error(
+                    "Config file %s exists but it is not file." % str(self.config_file)
+                )
             logger.info("Config file %s does not exists." % str(self.config_file))
             self.project_dir = self.config_file.parent
         else:

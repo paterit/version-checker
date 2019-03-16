@@ -1,3 +1,7 @@
+<!-- Updater documentation master file, created by
+sphinx-quickstart on Thu Mar 14 21:29:00 2019.
+You can adapt this file completely to your liking, but it should at least
+contain the root `toctree` directive. -->
 # Version updater for components in your codebase
 
 ## Problem to solve
@@ -107,3 +111,13 @@ If test-command param is given, this will be the context dir to run it.
 
 #### --git-commit
 When set after each components update, git commit is performed in active branch.
+
+
+#### --project-dir <project_dir>
+If given, then it will be treated as a root dir for paths in config file.
+
+<!-- Indices and tables
+==================
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search` -->

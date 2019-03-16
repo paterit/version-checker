@@ -29,11 +29,24 @@ pipenv-clean:
 pipenv-install:
 	pipenv install -d
 
-package-dist:
+package-dist: clean-package-dist
 	python setup.py sdist bdist_wheel
 	python -m twine upload dist/*
 	make clean-package-dist
 
 clean-package-dist:
 	rm -rf build dist updater.egg-info
+
+clean-docs:
+	rm -rf docs/build
+
+build-docs: clean-docs
+	cd docs && \
+		make html && \
+		make markdown
+	cd docs && \
+		find . -name *.md | xargs sed -i 's/( </ </g' && \
+		find . -name *.md | xargs sed -i 's/>)/>/g' && \
+		find . -name *.md | xargs sed -i 's/()//g'
+	cp docs/build/markdown/index.md ./README.md
 
