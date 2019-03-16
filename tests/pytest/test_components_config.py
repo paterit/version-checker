@@ -41,7 +41,7 @@ def config_from_copy_of_test_dir():
     config = components.Config(test_dir / "components.yaml")
     config.git_commit = False
     config.read_from_yaml()
-    return test_dir, config
+    return config
 
 
 def config_from_copy_of_test_dir_with_dir_param():
@@ -53,7 +53,7 @@ def config_from_copy_of_test_dir_with_dir_param():
     config.project_dir = test_dir
     config.git_commit = False
     config.read_from_yaml()
-    return test_dir, config
+    return config
 
 
 def test_save_next_version_to_yaml(tmp_path):
@@ -150,18 +150,18 @@ def test_components_to_dict(tmp_path):
 
 
 def test_update_components_files():
-    (test_dir, config) = config_from_copy_of_test_dir()
+    config = config_from_copy_of_test_dir()
     assert config.check() == [
         ("glances", True),
         ("logspout", True),
         ("Django", True),
         ("requests", True),
     ]
-    assert config.update_files(test_dir) == 5
+    assert config.update_files() == 5
 
 
 def test_save_config_dry_run():
-    (test_dir, config) = config_from_copy_of_test_dir()
+    config = config_from_copy_of_test_dir()
     content1 = config.config_file.read_text()
     config.save_config(destination_file=None, dry_run=True, print_yaml=False)
     content2 = config.config_file.read_text()
@@ -169,7 +169,7 @@ def test_save_config_dry_run():
 
 
 def test_save_config_print_yaml(capfd):
-    (test_dir, config) = config_from_copy_of_test_dir()
+    config = config_from_copy_of_test_dir()
     config.save_config(destination_file=None, dry_run=True, print_yaml=True)
     captured = capfd.readouterr()
     assert "nicolargo" in captured.out, captured.out
@@ -177,19 +177,19 @@ def test_save_config_print_yaml(capfd):
 
 # TODO: Refactor access to components and its path - get rid of long components[0] things
 def test_dry_run_update_file():
-    (test_dir, config) = config_from_copy_of_test_dir()
+    config = config_from_copy_of_test_dir()
     config.check()
     assert config.components[0].current_version != config.components[0].next_version
     assert config.components[1].current_version != config.components[1].next_version
     content1 = config.config_file.parent.joinpath(
         config.components[0].files[0]
     ).read_text()
-    config.update_files(base_dir=config.config_file.parent, dry_run=True)
+    config.update_files(dry_run=True)
     content2 = config.config_file.parent.joinpath(
         config.components[0].files[0]
     ).read_text()
     assert content1 == content2
-    config.update_files(base_dir=config.config_file.parent, dry_run=False)
+    config.update_files(dry_run=False)
     content2 = config.config_file.parent.joinpath(
         config.components[0].files[0]
     ).read_text()
@@ -197,14 +197,14 @@ def test_dry_run_update_file():
 
 
 def test_exclude_versions_param():
-    (test_dir, config) = config_from_copy_of_test_dir()
+    config = config_from_copy_of_test_dir()
     config.check()
     config.save_config()
     assert "next-version: v3.2.6" not in config.config_file.read_text()
 
 
 def test_update_components_files_with_testing_positive(capfd):
-    (test_dir, config) = config_from_copy_of_test_dir()
+    config = config_from_copy_of_test_dir()
     config.test_command = ["make", "test"]
     assert config.check() == [
         ("glances", True),
@@ -212,13 +212,13 @@ def test_update_components_files_with_testing_positive(capfd):
         ("Django", True),
         ("requests", True),
     ]
-    assert config.update_files(test_dir) == 5
+    assert config.update_files() == 5
     captured = capfd.readouterr()
     assert captured.out.count("Test OK") == 4, captured.out
 
 
 def test_update_components_files_with_project_dir_param(capfd):
-    (test_dir, config) = config_from_copy_of_test_dir_with_dir_param()
+    config = config_from_copy_of_test_dir_with_dir_param()
     config.test_command = ["make", "test"]
     assert config.check() == [
         ("glances", True),
@@ -226,13 +226,13 @@ def test_update_components_files_with_project_dir_param(capfd):
         ("Django", True),
         ("requests", True),
     ]
-    assert config.update_files(test_dir) == 5
+    assert config.update_files() == 5
     captured = capfd.readouterr()
     assert captured.out.count("Test OK") == 4, captured.out
 
 
 def test_update_components_files_with_testing_negative(capfd):
-    (test_dir, config) = config_from_copy_of_test_dir()
+    config = config_from_copy_of_test_dir()
     config.test_command = ["make", "test-fail"]
     assert config.check() == [
         ("glances", True),
@@ -241,7 +241,7 @@ def test_update_components_files_with_testing_negative(capfd):
         ("requests", True),
     ]
     with pytest.raises(AssertionError) as excinfo:
-        config.update_files(test_dir)
+        config.update_files()
     assert "Error" in str(excinfo.value)
     captured = capfd.readouterr()
     assert "Test KO" in captured.out, captured.out

@@ -136,7 +136,7 @@ def update(ctx, test_command, test_dir, git_commit, project_dir):
     config.check()
     config.save_config(destination_file, dry_run, print_yaml)
     try:
-        config.update_files(config.project_dir, dry_run)
+        config.update_files(dry_run)
     except AssertionError:
         logger.error(
             click.style("Something went wrong!!!", "red")

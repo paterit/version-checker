@@ -142,11 +142,11 @@ class Config:
                     )
                 )
 
-    def update_files(self, base_dir, dry_run=False):
+    def update_files(self, dry_run=False):
         counter = 0
         for component in self.components:
             if component.newer_version_exists():
-                counter += component.update_files(base_dir, dry_run)
+                counter += component.update_files(self.project_dir, dry_run)
             self.update_status(component, self.STATE_FILES_UPDATED)
             if self.test_command:
                 self.run_tests(component)

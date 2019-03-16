@@ -5,7 +5,7 @@
 			"file_regex": "^[ ]*File \"(...*?)\", line ([0-9]*)",
 			"name": "Anaconda Python Builder",
 			"selector": "source.python",
-			"shell_cmd": "\"/home/wsemik/workspace/dmt/version-checker/.venv/bin/python\" -u \"$file\""
+			"shell_cmd": "\".venv/bin/python\" -u \"$file\""
 		}
 	],
 	"folders":
@@ -20,7 +20,7 @@
 		"display_signatures": true,
 		"enable_signatures_tooltip": true,
 		"merge_signatures_and_doc": true,
-		"python_interpreter": "/home/wsemik/workspace/dmt/version-checker/.venv/bin/python",
+		"python_interpreter": ".venv/bin/python",
 		"validate_imports": true,
 		"pep8_ignore":
 		[
