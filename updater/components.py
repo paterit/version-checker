@@ -6,7 +6,6 @@ import pprint
 from subprocess import run
 
 import click
-import maya
 import requests
 import yaml
 from cachier import cachier
@@ -14,16 +13,23 @@ from loguru import logger
 from packaging.version import parse
 from plumbum import local
 from rex import rex
+import sys
 
 from updater import git_check, plumbum_msg
+
+logger.add(sys.stderr, level="INFO")
+logger.add(sys.stdout, level="INFO")
 
 
 class Config:
 
-    STATE_FILES_UPDATED = "STATE_FILES_UPDATED"
-    STATE_TEST_RUN = "STATE_TEST_RUN"
-    STATE_CONFIG_SAVED = "STATE_CONFIG_SAVED"
-    STATE_COMMITED_CHANGES = "STATE_COMMITED_CHANGES"
+    STATE_FILES_UPDATED = "FILES_UPDATED"
+    STATE_TEST_RUN = "TEST_RUN"
+    STATE_CONFIG_SAVED = "CONFIG_SAVED"
+    STATE_COMMITED_CHANGES = "COMMITED_CHANGES"
+    STATE_UPDATE_STARTED = "UPDATE_STARTED"
+    STATE_UPDATE_SKIPPED = "UPDATE_SKIPPED"
+    STATE_UPDATE_DONE = "UPDATE_DONE"
 
     def __init__(self, components_yaml_file=None):
         self.components = []
@@ -33,10 +39,10 @@ class Config:
                 logger.error(
                     "Config file %s exists but it is not file." % str(self.config_file)
                 )
-            logger.info("Config file %s does not exists." % str(self.config_file))
             self.project_dir = self.config_file.parent
         else:
             self.project_dir = None
+            logger.info("Config file %s does not exists." % str(self.config_file))
         self.test_command = None
         self.test_dir = None
         self.git_commit = True
@@ -44,9 +50,30 @@ class Config:
 
     def update_status(self, component, step):
         if component.component_name not in self.status:
-            self.status["component.component_name"] = {}
-        comp = self.status["component.component_name"]
-        comp[step] = str(maya.now())
+            self.status[component.component_name] = {}
+        comp = self.status[component.component_name]
+        if step in [self.STATE_UPDATE_STARTED, self.STATE_UPDATE_SKIPPED]:
+            message = (
+                step
+                + " for "
+                + component.component_name
+                + " in version "
+                + component.current_version_tag
+            )
+        elif step in [self.STATE_UPDATE_DONE]:
+            message = (
+                step
+                + " for "
+                + component.component_name
+                + " in version "
+                + component.next_version_tag
+            )
+        else:
+            message = step
+        comp[str(datetime.datetime.now())] = message
+
+    def get_status(self):
+        return pprint.pformat(self.status, indent=4)
 
     def add(self, component):
         self.components.append(component)
@@ -148,23 +175,27 @@ class Config:
         counter = 0
         for component in self.components:
             if component.newer_version_exists():
+                self.update_status(component, self.STATE_UPDATE_STARTED)
                 counter += component.update_files(self.project_dir, dry_run)
-            self.update_status(component, self.STATE_FILES_UPDATED)
-            if self.test_command:
-                self.run_tests(component)
-                self.update_status(component, self.STATE_TEST_RUN)
+                self.update_status(component, self.STATE_FILES_UPDATED)
+                if self.test_command:
+                    self.run_tests(component)
+                    self.update_status(component, self.STATE_TEST_RUN)
 
-            if not dry_run:
-                component.current_version = copy.deepcopy(component.next_version)
-                component.current_version_tag = copy.deepcopy(
-                    component.next_version_tag
-                )
-            self.save_config(dry_run=dry_run)
-            self.update_status(component, self.STATE_CONFIG_SAVED)
+                if not dry_run:
+                    component.current_version = copy.deepcopy(component.next_version)
+                    component.current_version_tag = copy.deepcopy(
+                        component.next_version_tag
+                    )
+                self.save_config(dry_run=dry_run)
+                self.update_status(component, self.STATE_CONFIG_SAVED)
 
-            if self.git_commit:
-                self.commit_changes(component, dry_run)
-                self.update_status(component, self.STATE_COMMITED_CHANGES)
+                if self.git_commit:
+                    self.commit_changes(component, dry_run)
+                    self.update_status(component, self.STATE_COMMITED_CHANGES)
+                self.update_status(component, self.STATE_UPDATE_DONE)
+            else:
+                self.update_status(component, self.STATE_UPDATE_SKIPPED)
 
         return counter
 
@@ -174,12 +205,9 @@ class Config:
             + " - current: "
             + c.current_version_tag
             + " next: "
-            + (
-                click.style(c.next_version_tag, fg="green")
-                if c.newer_version_exists()
-                else click.style(c.next_version_tag, fg="yellow")
-            )
+            + (click.style(c.next_version_tag, fg="green"))
             for c in self.components
+            if c.newer_version_exists()
         ]
         new.sort()
         return new

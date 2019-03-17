@@ -1,5 +1,5 @@
 def plumbum_msg(command_exit):
-    return "Exit code %d.\nCommand output: %s.\nError msg: %s\n" % (
+    return "Exit code %d.\nCommand output:\n%s.\nError msg:\n%s\n" % (
         command_exit[0],
         command_exit[1],
         command_exit[2],

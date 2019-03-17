@@ -1,9 +1,17 @@
-run:
+check:
 	@pipenv run \
 		python check_version.py \
 		--file=tests/test_files/components.yaml \
 		--dry-run \
 		check
+
+update:
+	@pipenv run \
+		python check_version.py \
+		--file=tests/test_files/components.yaml \
+		--dry-run \
+		update \
+		--verbose
 
 help:
 	pipenv run python check_version.py --help

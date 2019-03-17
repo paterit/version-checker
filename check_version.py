@@ -1,10 +1,13 @@
-import pprint
 from pathlib import Path
+import sys
 
 import click
 from loguru import logger
 
 from updater import components
+
+logger.add(sys.stderr, level="INFO")
+logger.add(sys.stdout, level="INFO")
 
 
 @click.group()
@@ -120,8 +123,13 @@ def check(ctx, component_type, component, repo_name, version_tag, verbose):
     type=click.Path(),
     help="If given, then it will be treated as a root dir for paths in config file.",
 )
+@click.option(
+    "--verbose",
+    is_flag=True,
+    help="Print at the end detailed info for each component about update process.",
+)
 @click.pass_context
-def update(ctx, test_command, test_dir, git_commit, project_dir):
+def update(ctx, test_command, test_dir, git_commit, project_dir, verbose):
     """Update files with version numbers, run test and commit changes."""
     config = ctx.obj["config"]
     dry_run = ctx.obj["dry_run"]
@@ -135,18 +143,22 @@ def update(ctx, test_command, test_dir, git_commit, project_dir):
     config.read_from_yaml()
     config.check()
     config.save_config(destination_file, dry_run, print_yaml)
+
     try:
         config.update_files(dry_run)
+        if verbose:
+            click.echo(config.get_status())
+            logger.trace(config.get_status())
     except AssertionError:
         logger.error(
             click.style("Something went wrong!!!", "red")
             + "\n"
             + "Config status:\n"
-            + pprint.pformat(config.status, indent=4)
+            + config.get_status()
         )
     except Exception as exception:
         # Output unexpected Exceptions.
-        logger.error(str(exception))
+        logger.exception(exception)
 
 
 if __name__ == "__main__":
