@@ -69,14 +69,23 @@ def cli(ctx, file, destination_file, dry_run, print_yaml):
     is_flag=True,
     help="Print detailed info for each component about new version avaialble.",
 )
+@click.option(
+    "--clear-cache",
+    "clear_cache",
+    is_flag=True,
+    help="Clear all the cached responses about versions in rpositories.",
+)
 @click.pass_context
-def check(ctx, component_type, component, repo_name, version_tag, verbose):
+def check(ctx, component_type, component, repo_name, version_tag, verbose, clear_cache):
     """Check if new versions of defined components are available."""
     config = ctx.obj["config"]
-    # config_file = ctx.obj["config_file"]
     destination_file = ctx.obj["destination_file"]
     dry_run = ctx.obj["dry_run"]
     print_yaml = ctx.obj["print_yaml"]
+
+    if clear_cache:
+        components.clear_docker_images_cache()
+        sys.exit(0)
 
     config.read_from_yaml()
 

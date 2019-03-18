@@ -10,7 +10,7 @@ with open(path.join(this_directory, "README.md"), encoding="utf-8") as f:
 
 setup(
     name="updater",
-    version="0.1.7",
+    version="0.1.8",
     long_description=long_description,
     description="Check and update versions of pypi packages and docker-images in your project.",
     long_description_content_type="text/markdown",
@@ -37,7 +37,6 @@ setup(
         "python-rex==0.4",
         "pymongo==3.7.2",
         "click==7.0",
-        "maya==0.6.1",
     ],
     entry_points="""
         [console_scripts]

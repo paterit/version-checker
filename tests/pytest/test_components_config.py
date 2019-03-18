@@ -78,6 +78,21 @@ def test_save_prefix_to_yaml(tmp_path):
     assert "version_prefix" in file_content
 
 
+# TODO refactor config.components[0]
+def test_save_version_pattern_to_yaml(tmp_path):
+    config_file = tmp_path / "components.yaml"
+    config = components.Config(components_yaml_file=config_file)
+    config.add(components.factory.get(**comp["logspout"]))
+    config.components[0].version_pattern = "{version}:{version}"
+    config.save_to_yaml()
+    file_content = config_file.read_text()
+    assert "{version}:{version}" in file_content
+    config.components[0].version_pattern = config.components[0].DEFAULT_VERSION_PATTERN
+    config.save_to_yaml()
+    file_content = config_file.read_text()
+    assert "version-pattern" not in file_content
+
+
 def test_exlude_versions_to_yaml(tmp_path):
     config_file = tmp_path / "components.yaml"
     config = components.Config(components_yaml_file=config_file)
@@ -156,8 +171,9 @@ def test_update_components_files():
         ("logspout", True),
         ("Django", True),
         ("requests", True),
+        ("python", True),
     ]
-    assert config.update_files() == 5
+    assert config.update_files() == 6
 
 
 def test_save_config_dry_run():
@@ -211,10 +227,11 @@ def test_update_components_files_with_testing_positive(capfd):
         ("logspout", True),
         ("Django", True),
         ("requests", True),
+        ("python", True),
     ]
-    assert config.update_files() == 5
+    assert config.update_files() == 6
     captured = capfd.readouterr()
-    assert captured.out.count("Test OK") == 4, captured.out
+    assert captured.out.count("Test OK") == 5, captured.out
 
 
 def test_update_components_files_with_project_dir_param(capfd):
@@ -225,10 +242,11 @@ def test_update_components_files_with_project_dir_param(capfd):
         ("logspout", True),
         ("Django", True),
         ("requests", True),
+        ("python", True),
     ]
-    assert config.update_files() == 5
+    assert config.update_files() == 6
     captured = capfd.readouterr()
-    assert captured.out.count("Test OK") == 4, captured.out
+    assert captured.out.count("Test OK") == 5, captured.out
 
 
 def test_update_components_files_with_testing_negative(capfd):
@@ -239,6 +257,7 @@ def test_update_components_files_with_testing_negative(capfd):
         ("logspout", True),
         ("Django", True),
         ("requests", True),
+        ("python", True),
     ]
     with pytest.raises(AssertionError) as excinfo:
         config.update_files()

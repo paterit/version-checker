@@ -13,6 +13,9 @@ update:
 		update \
 		--verbose
 
+clear-cache:
+	@pipenv run python check_version.py check --clear-cache
+
 help:
 	pipenv run python check_version.py --help
 

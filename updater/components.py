@@ -42,7 +42,6 @@ class Config:
             self.project_dir = self.config_file.parent
         else:
             self.project_dir = None
-            logger.info("Config file %s does not exists." % str(self.config_file))
         self.test_command = None
         self.test_dir = None
         self.git_commit = True
@@ -99,6 +98,7 @@ class Config:
         if print_yaml:
             click.echo(pprint.pformat(yaml.dump(self.components_to_dict()), indent=4))
 
+    # TODO refactor - get rid of those DEFAULTS value
     def read_from_yaml(self, file=None, clear_components=True):
         read_file = file or self.config_file
         if read_file and read_file.is_file():
@@ -110,28 +110,24 @@ class Config:
             self.components = []
 
         for component_name in components_dict:
-            comp = components_dict[component_name]
+            compd = components_dict[component_name]
             params = {
-                "component_type": comp["component-type"],
+                "component_type": compd["component-type"],
                 "component_name": component_name,
-                "current_version_tag": comp["current-version"],
-                "repo_name": comp.get("docker-repo", Component.REPO_DEFAULT),
+                "current_version_tag": compd["current-version"],
+                "repo_name": compd.get("docker-repo", Component.REPO_DEFAULT),
             }
             last_index = self.add(factory.get(**params))
-            self.components[last_index].repo_name = comp.get(
-                "docker-repo", Component.REPO_DEFAULT
+            comp = self.components[last_index]
+            comp.repo_name = compd.get("docker-repo", comp.REPO_DEFAULT)
+            comp.prefix = compd.get("prefix", comp.PREFIX_DEFAULT)
+            comp.filter = compd.get("filter", comp.FILTER_DEFAULT)
+            comp.files = compd.get("files", comp.FILES_DEFAULT)
+            comp.exclude_versions = compd.get(
+                "exclude-versions", comp.EXLUDE_VERSIONS_DEFAULT
             )
-            self.components[last_index].prefix = comp.get(
-                "prefix", Component.PREFIX_DEFAULT
-            )
-            self.components[last_index].filter = comp.get(
-                "filter", Component.FILTER_DEFAULT
-            )
-            self.components[last_index].files = comp.get(
-                "files", Component.FILES_DEFAULT
-            )
-            self.components[last_index].exclude_versions = comp.get(
-                "exclude-versions", Component.EXLUDE_VERSIONS_DEFAULT
+            comp.version_pattern = compd.get(
+                "version-pattern", comp.DEFAULT_VERSION_PATTERN
             )
 
     def count_components_to_update(self):
@@ -221,6 +217,7 @@ class Component(ABC):
     EXLUDE_VERSIONS_DEFAULT = []
     REPO_DEFAULT = None
     LATEST_TAGS = ["latest"]
+    DEFAULT_VERSION_PATTERN = "{version}"
 
     def __init__(self, component_name, current_version_tag):
         self.component_type = None
@@ -234,6 +231,7 @@ class Component(ABC):
         self.filter = self.FILTER_DEFAULT
         self.files = self.FILES_DEFAULT
         self.exclude_versions = self.EXLUDE_VERSIONS_DEFAULT
+        self.version_pattern = self.DEFAULT_VERSION_PATTERN
         super().__init__()
 
     def newer_version_exists(self):
@@ -261,14 +259,13 @@ class Component(ABC):
 
         return self.newer_version_exists()
 
+    # TODO refactor - ugly
     def to_dict(self):
         ret = {
             "component-type": self.component_type,
             "current-version": self.current_version_tag,
             "next-version": self.next_version_tag,
         }
-        # if self.current_version_tag != self.next_version_tag:
-        #     ret["next-version"] = self.next_version_tag
         if self.prefix != self.PREFIX_DEFAULT:
             ret["prefix"] = self.prefix
         if self.filter != self.FILTER_DEFAULT:
@@ -277,10 +274,13 @@ class Component(ABC):
             ret["files"] = self.files
         if self.exclude_versions != self.EXLUDE_VERSIONS_DEFAULT:
             ret["exclude-versions"] = self.exclude_versions
+        if self.version_pattern != self.DEFAULT_VERSION_PATTERN:
+            ret["version-pattern"] = self.version_pattern
         return ret
 
     def name_version_tag(self, version_tag):
-        return version_tag
+        d = {"version": version_tag, "component": self.component_name}
+        return self.version_pattern.format(**d)
 
     def count_occurence(self, string_to_search):
         return string_to_search.count(self.name_version_tag(self.current_version_tag))
@@ -308,8 +308,8 @@ class Component(ABC):
                     % self.component_name
                     + ": %s and next_version: %s\nOrigin\n%s\nNew\n%s."
                     % (
-                        self.current_version_tag,
-                        self.next_version_tag,
+                        self.name_version_tag(self.current_version_tag),
+                        self.name_version_tag(self.next_version_tag),
                         orig_content,
                         new_content,
                     )
@@ -317,6 +317,11 @@ class Component(ABC):
                 file.write_text(new_content)
             counter += 1
         return counter
+
+
+def clear_docker_images_cache():
+    fetch_docker_images_versions.clear_cache()
+    fetch_pypi_versions.clear_cache()
 
 
 @cachier(stale_after=datetime.timedelta(days=3))
@@ -355,12 +360,14 @@ def fetch_pypi_versions(component_name):
 
 
 class DockerImageComponent(Component):
-    """docstring for ClassName"""
+
+    DEFAULT_VERSION_PATTERN = "{component}:{version}"
 
     def __init__(self, repo_name, component_name, current_version_tag):
         super(DockerImageComponent, self).__init__(component_name, current_version_tag)
         self.repo_name = repo_name
         self.component_type = "docker-image"
+        self.version_pattern = self.DEFAULT_VERSION_PATTERN
 
     def fetch_versions(self):
         return fetch_docker_images_versions(self.repo_name, self.component_name)
@@ -370,22 +377,18 @@ class DockerImageComponent(Component):
         ret["docker-repo"] = self.repo_name
         return ret
 
-    def name_version_tag(self, version_tag):
-        return self.component_name + ":" + version_tag
-
 
 class PypiComponent(Component):
-    """docstring for ClassName"""
+
+    DEFAULT_VERSION_PATTERN = "{component}=={version}"
 
     def __init__(self, component_name, current_version_tag, **_ignored):
         super(PypiComponent, self).__init__(component_name, current_version_tag)
         self.component_type = "pypi"
+        self.version_pattern = self.DEFAULT_VERSION_PATTERN
 
     def fetch_versions(self):
         return fetch_pypi_versions(self.component_name)
-
-    def name_version_tag(self, version_tag):
-        return self.component_name + "==" + version_tag
 
 
 class ComponentFactory:

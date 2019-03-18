@@ -23,5 +23,12 @@ requests:
   current-version: 2.20.0
   filter: /^\d+\.\d+\.\d+$/
   files: [app/requirements.txt]
+python:
+  component-type: docker-image
+  current-version: 3.6.6-alpine3.8
+  docker-repo: library
+  filter: /^\d+\.\d+\.\d+-alpine\d+\.\d+$/
+  files: [locust/Dockerfile]
+  version-pattern: "PYTHON_VERSION={version}"
 
 

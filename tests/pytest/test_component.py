@@ -53,7 +53,7 @@ def test_parse_compare_versions():
 def check_docker_images_versions(repo_name, component_name, version_tag):
     tags = components.fetch_docker_images_versions(repo_name, component_name)
     assert len(tags) > 0, "Empty list returned %r" % tags
-    assert version_tag in tags, "For %r/%r lack of version: %r in tags %r" % (
+    assert version_tag in tags, "For %s/%s lack of version: %s in tags %r" % (
         repo_name,
         component_name,
         version_tag,
@@ -64,7 +64,7 @@ def check_docker_images_versions(repo_name, component_name, version_tag):
 def check_pypi_versions(component_name, version_tag):
     tags = components.fetch_pypi_versions(component_name)
     assert len(tags) > 0, "Empty list returned %r" % tags
-    assert version_tag in tags, "For %r lack of version: %r in tags %r" % (
+    assert version_tag in tags, "For %s lack of version: %s in tags %r" % (
         component_name,
         version_tag,
         tags,
@@ -74,6 +74,7 @@ def check_pypi_versions(component_name, version_tag):
 def test_fetch_docker_images_versions():
     check_docker_images_versions("gliderlabs", "logspout", "v3.1")
     check_docker_images_versions("nicolargo", "glances", "v2.11.1")
+    check_docker_images_versions("library", "python", "3.6.6-alpine3.8")
 
 
 def test_fetch_pypi_versions():

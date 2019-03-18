@@ -25,6 +25,9 @@
 		"pep8_ignore":
 		[
 		    "W503"
-		]
+		],
+		"test_command": "make pytest",
+		"test_virtualenv": ".venv/bin/python",
+		"pytest": ".venv/bin/pytest",
 	},
 }
