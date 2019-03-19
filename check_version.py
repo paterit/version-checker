@@ -3,6 +3,7 @@ import sys
 
 import click
 from loguru import logger
+import pkg_resources
 
 from updater import components
 
@@ -11,6 +12,11 @@ logger.add(sys.stdout, level="INFO")
 
 
 @click.group()
+@click.version_option(
+    version=Path(
+        pkg_resources.resource_filename(__name__, "updater/VERSION")
+    ).read_text()
+)
 @click.option(
     "--file",
     type=click.Path(exists=True, writable=True),

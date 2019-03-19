@@ -1,20 +1,12 @@
 from setuptools import setup, find_packages
 
-# read the contents of your README file
-from os import path
-
-this_directory = path.abspath(path.dirname(__file__))
-with open(path.join(this_directory, "README.md"), encoding="utf-8") as f:
-    long_description = f.read()
-
-with open(path.join(this_directory, "VERSION"), encoding="utf-8") as f:
-    version = f.read()
+from pathlib import Path
 
 
 setup(
     name="updater",
-    version=version,
-    long_description=long_description,
+    version=Path.cwd().joinpath("updater/VERSION").read_text(),
+    long_description=Path.cwd().joinpath("README.md").read_text(),
     description="Check and update versions of pypi packages and docker-images in your project.",
     long_description_content_type="text/markdown",
     url="https://github.com/paterit/version-checker",
@@ -45,4 +37,5 @@ setup(
         [console_scripts]
         updater=check_version:cli
     """,
+    include_package_data=True,
 )
