@@ -98,7 +98,6 @@ class Config:
         if print_yaml:
             click.echo(pprint.pformat(yaml.dump(self.components_to_dict()), indent=4))
 
-    # TODO refactor - get rid of those DEFAULTS value
     def read_from_yaml(self, file=None, clear_components=True):
         read_file = file or self.config_file
         if read_file and read_file.is_file():
@@ -115,16 +114,16 @@ class Config:
                 "component_type": compd["component-type"],
                 "component_name": component_name,
                 "current_version_tag": compd["current-version"],
-                "repo_name": compd.get("docker-repo", Component.REPO_DEFAULT),
+                "repo_name": compd.get("docker-repo", Component.DEFAULT_REPO),
             }
             last_index = self.add(factory.get(**params))
             comp = self.components[last_index]
-            comp.repo_name = compd.get("docker-repo", comp.REPO_DEFAULT)
-            comp.prefix = compd.get("prefix", comp.PREFIX_DEFAULT)
-            comp.filter = compd.get("filter", comp.FILTER_DEFAULT)
-            comp.files = compd.get("files", comp.FILES_DEFAULT)
+            comp.repo_name = compd.get("docker-repo", comp.DEFAULT_REPO)
+            comp.prefix = compd.get("prefix", comp.DEFAULT_PREFIX)
+            comp.filter = compd.get("filter", comp.DEFAULT_FILTER)
+            comp.files = compd.get("files", comp.DEFAULT_FILES)
             comp.exclude_versions = compd.get(
-                "exclude-versions", comp.EXLUDE_VERSIONS_DEFAULT
+                "exclude-versions", comp.DEFAULT_EXLUDE_VERSIONS
             )
             comp.version_pattern = compd.get(
                 "version-pattern", comp.DEFAULT_VERSION_PATTERN
@@ -211,11 +210,11 @@ class Config:
 
 class Component(ABC):
 
-    PREFIX_DEFAULT = None
-    FILTER_DEFAULT = "/.*/"
-    FILES_DEFAULT = None
-    EXLUDE_VERSIONS_DEFAULT = []
-    REPO_DEFAULT = None
+    DEFAULT_PREFIX = None
+    DEFAULT_FILTER = "/.*/"
+    DEFAULT_FILES = None
+    DEFAULT_EXLUDE_VERSIONS = []
+    DEFAULT_REPO = None
     LATEST_TAGS = ["latest"]
     DEFAULT_VERSION_PATTERN = "{version}"
 
@@ -227,10 +226,10 @@ class Component(ABC):
         self.version_tags = []
         self.next_version = self.current_version
         self.next_version_tag = self.current_version_tag
-        self.prefix = self.PREFIX_DEFAULT
-        self.filter = self.FILTER_DEFAULT
-        self.files = self.FILES_DEFAULT
-        self.exclude_versions = self.EXLUDE_VERSIONS_DEFAULT
+        self.prefix = self.DEFAULT_PREFIX
+        self.filter = self.DEFAULT_FILTER
+        self.files = self.DEFAULT_FILES
+        self.exclude_versions = self.DEFAULT_EXLUDE_VERSIONS
         self.version_pattern = self.DEFAULT_VERSION_PATTERN
         super().__init__()
 
@@ -259,20 +258,19 @@ class Component(ABC):
 
         return self.newer_version_exists()
 
-    # TODO refactor - ugly
     def to_dict(self):
         ret = {
             "component-type": self.component_type,
             "current-version": self.current_version_tag,
             "next-version": self.next_version_tag,
         }
-        if self.prefix != self.PREFIX_DEFAULT:
+        if self.prefix != self.DEFAULT_PREFIX:
             ret["prefix"] = self.prefix
-        if self.filter != self.FILTER_DEFAULT:
+        if self.filter != self.DEFAULT_FILTER:
             ret["filter"] = self.filter
-        if self.files != self.FILES_DEFAULT:
+        if self.files != self.DEFAULT_FILES:
             ret["files"] = self.files
-        if self.exclude_versions != self.EXLUDE_VERSIONS_DEFAULT:
+        if self.exclude_versions != self.DEFAULT_EXLUDE_VERSIONS:
             ret["exclude-versions"] = self.exclude_versions
         if self.version_pattern != self.DEFAULT_VERSION_PATTERN:
             ret["version-pattern"] = self.version_pattern

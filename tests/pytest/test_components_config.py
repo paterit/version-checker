@@ -78,7 +78,6 @@ def test_save_prefix_to_yaml(tmp_path):
     assert "version_prefix" in file_content
 
 
-# TODO refactor config.components[0]
 def test_save_version_pattern_to_yaml(tmp_path):
     config_file = tmp_path / "components.yaml"
     config = components.Config(components_yaml_file=config_file)
@@ -191,24 +190,19 @@ def test_save_config_print_yaml(capfd):
     assert "nicolargo" in captured.out, captured.out
 
 
-# TODO: Refactor access to components and its path - get rid of long components[0] things
 def test_dry_run_update_file():
     config = config_from_copy_of_test_dir()
     config.check()
-    assert config.components[0].current_version != config.components[0].next_version
-    assert config.components[1].current_version != config.components[1].next_version
-    content1 = config.config_file.parent.joinpath(
-        config.components[0].files[0]
-    ).read_text()
+    c0, c1 = config.components[0], config.components[1]
+
+    assert c0.current_version != c0.next_version
+    assert c1.current_version != c1.next_version
+    content1 = config.config_file.parent.joinpath(c0.files[0]).read_text()
     config.update_files(dry_run=True)
-    content2 = config.config_file.parent.joinpath(
-        config.components[0].files[0]
-    ).read_text()
+    content2 = config.config_file.parent.joinpath(c0.files[0]).read_text()
     assert content1 == content2
     config.update_files(dry_run=False)
-    content2 = config.config_file.parent.joinpath(
-        config.components[0].files[0]
-    ).read_text()
+    content2 = config.config_file.parent.joinpath(c0.files[0]).read_text()
     assert content1 != content2
 
 
