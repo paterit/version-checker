@@ -7,10 +7,13 @@ this_directory = path.abspath(path.dirname(__file__))
 with open(path.join(this_directory, "README.md"), encoding="utf-8") as f:
     long_description = f.read()
 
+with open(path.join(this_directory, "VERSION"), encoding="utf-8") as f:
+    version = f.read()
+
 
 setup(
     name="updater",
-    version="0.1.8",
+    version=version,
     long_description=long_description,
     description="Check and update versions of pypi packages and docker-images in your project.",
     long_description_content_type="text/markdown",

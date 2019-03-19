@@ -43,6 +43,7 @@ pipenv-install:
 package-dist: clean-package-dist
 	python setup.py sdist bdist_wheel
 	python -m twine upload dist/*
+	git tag -f -a `cat VERSION` -m "New relase `cat VERSION`"
 	make clean-package-dist
 
 clean-package-dist:
@@ -61,3 +62,5 @@ build-docs: clean-docs
 		find . -name *.md | xargs sed -i 's/()//g'
 	cp docs/build/markdown/index.md ./README.md
 
+blackd:
+	docker run -d --rm -p 45484:45484 --name blackd paterit/blackd

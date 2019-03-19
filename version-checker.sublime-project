@@ -29,5 +29,7 @@
 		"test_command": "make pytest",
 		"test_virtualenv": ".venv/bin/python",
 		"pytest": ".venv/bin/pytest",
+		"sublack.black_use_blackd": true,
+		"sublack.black_on_save": true
 	},
 }
