@@ -164,7 +164,8 @@ def update(ctx, test_command, test_dir, git_commit, project_dir, verbose):
         if verbose:
             click.echo(config.get_status())
             logger.trace(config.get_status())
-    except AssertionError:
+    except AssertionError as exception:
+        logger.error(exception)
         logger.error(
             click.style("Something went wrong!!!", "red")
             + "\n"

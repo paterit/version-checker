@@ -1,4 +1,5 @@
 .venv
+.env
 Pipfile.lock
 version-checker.sublime-workspace
 TODO
