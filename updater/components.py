@@ -144,7 +144,7 @@ class Config:
             + str(ret)
         )
 
-    def commit_changes(self, component, dry_run):
+    def commit_changes(self, component, from_version, to_version, dry_run):
         git = local["git"]
         with local.cwd(self.config_file.parent):
             ret = git_check(git["diff", "--name-only"].run(retcode=None))
@@ -156,16 +156,20 @@ class Config:
                 git_check(git["add", self.config_file.name].run(retcode=None))
                 for file_name in component.files:
                     git_check(git["add", file_name].run(retcode=None))
+                commit_message = (
+                    f"For {component.component_name} "
+                    f"updated from: {from_version} to: {to_version}"
+                )
                 git_check(
-                    git["commit", "--message=%s" % component.component_name].run(
-                        retcode=None
-                    )
+                    git["commit", f"--message=%s" % commit_message].run(retcode=None)
                 )
 
     def update_files(self, dry_run=False):
         counter = 0
         for component in self.components:
             if component.newer_version_exists():
+                orig_current_tag = component.current_version_tag
+                orig_next_tag = component.next_version_tag
                 self.update_status(component, self.STATE_UPDATE_STARTED)
                 counter += component.update_files(self.project_dir, dry_run)
                 self.update_status(component, self.STATE_FILES_UPDATED)
@@ -182,7 +186,9 @@ class Config:
                 self.update_status(component, self.STATE_CONFIG_SAVED)
 
                 if self.git_commit:
-                    self.commit_changes(component, dry_run)
+                    self.commit_changes(
+                        component, orig_current_tag, orig_next_tag, dry_run
+                    )
                     self.update_status(component, self.STATE_COMMITED_CHANGES)
                 self.update_status(component, self.STATE_UPDATE_DONE)
             else:

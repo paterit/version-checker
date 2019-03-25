@@ -22,7 +22,7 @@ help:
 sbe:
 	pipenv run behave --tags=-skip --tags=-wip --stop --no-skipped tests/features
 sbe-wip:
-	pipenv run behave --tags=wip --stop --no-skipped --no-summary tests/features
+	pipenv run behave --tags=wip --stop --no-skipped --no-summary --no-logcapture --no-capture-stderr --no-logcapture --logging-level=DEBUG tests/features
 pytest:
 	pipenv run python -m pytest --disable-warnings -vv -x
 pytest-wip:

@@ -8,6 +8,7 @@ from updater import plumbum_msg, git_check
 
 @given(u"New version of component is set in defined files in git repo")
 def step_impl(context):
+
     test_dir = Path(tempfile.TemporaryDirectory().name)
     shutil.copytree(Path.cwd() / "tests/test_files", test_dir)
     test_file = test_dir / "components.yaml"

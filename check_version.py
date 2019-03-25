@@ -39,6 +39,7 @@ from updater import components
 )
 @click.pass_context
 def cli(ctx, file, destination_file, dry_run, print_yaml):
+
     if file is not None:
         config_file = Path(file).absolute()
     elif Path.cwd().absolute().joinpath("components.yaml").is_file():
@@ -47,6 +48,7 @@ def cli(ctx, file, destination_file, dry_run, print_yaml):
         config_file = None
     if ctx.obj is None:
         ctx.obj = {}
+
     ctx.obj["config"] = components.Config(components_yaml_file=config_file)
     ctx.obj["config_file"] = config_file
     ctx.obj["destination_file"] = destination_file
@@ -161,20 +163,16 @@ def update(ctx, test_command, test_dir, git_commit, project_dir, verbose):
         if verbose:
             click.echo(config.get_status())
             logger.trace(config.get_status())
-    except AssertionError as exception:
-        logger.error(exception)
+    except Exception as e:
+        logger.exception(e)
         logger.error(
             click.style("Something went wrong!!!", "red")
             + "\n"
             + "Config status:\n"
             + config.get_status()
         )
-    except Exception as exception:
-        # Output unexpected Exceptions.
-        logger.exception(exception)
+        sys.exit(2)
 
 
 if __name__ == "__main__":
-    logger.add(sys.stderr, level="INFO")
-    logger.add(sys.stdout, level="INFO")
     cli(obj={})
