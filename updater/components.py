@@ -13,12 +13,8 @@ from loguru import logger
 from packaging.version import parse
 from plumbum import local
 from rex import rex
-import sys
 
 from updater import git_check, plumbum_msg
-
-logger.add(sys.stderr, level="INFO")
-logger.add(sys.stdout, level="INFO")
 
 
 class Config:

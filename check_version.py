@@ -7,9 +7,6 @@ import pkg_resources
 
 from updater import components
 
-logger.add(sys.stderr, level="INFO")
-logger.add(sys.stdout, level="INFO")
-
 
 @click.group()
 @click.version_option(
@@ -178,4 +175,6 @@ def update(ctx, test_command, test_dir, git_commit, project_dir, verbose):
 
 
 if __name__ == "__main__":
+    logger.add(sys.stderr, level="INFO")
+    logger.add(sys.stdout, level="INFO")
     cli(obj={})
