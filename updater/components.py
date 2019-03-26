@@ -157,7 +157,7 @@ class Config:
                 for file_name in component.files:
                     git_check(git["add", file_name].run(retcode=None))
                 commit_message = (
-                    f"For {component.component_name} "
+                    f"{component.component_name} "
                     f"updated from: {from_version} to: {to_version}"
                 )
                 git_check(
