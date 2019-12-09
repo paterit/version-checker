@@ -65,3 +65,18 @@ build-docs: clean-docs
 
 blackd:
 	docker run -d --rm -p 45484:45484 --name blackd paterit/blackd
+
+tox:
+	python -m tox
+
+pyenv-install:
+	pyenv install 3.8.0
+	pyenv local 3.8.0
+	python -m pip install tox
+	pyenv install 3.7.5
+	pyenv local 3.7.5
+	python -m pip install tox
+	pyenv install 3.6.9
+	pyenv local 3.6.9
+	python -m pip install tox
+	pyenv local 3.8.0 3.7.5 3.6.9

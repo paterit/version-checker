@@ -23,7 +23,7 @@ from updater import components
     "--destination-file",
     "destination_file",
     type=click.Path(),
-    help="If this option is given components configuration with new versions will be wrtten here.",
+    help="If this option is given components configuration with new versions will be written here.",
 )
 @click.option(
     "--dry-run",
@@ -63,8 +63,10 @@ def cli(ctx, file, destination_file, dry_run, print_yaml):
     help="Component type: docker-image or pypi package.",
     type=click.Choice(["docker-image", "pypi"]),
 )
-@click.option("--component", help="Component name to version veryfication.")
-@click.option("--repo_name", help="Repository name if component is docker image.")
+@click.option(
+    "--component", help="A component name for which the version should be verified."
+)
+@click.option("--repo_name", help="A repository name if component is a docker image.")
 @click.option(
     "--version_tag",
     help="Version tag eg. v2.3.0 against which new version check will be run.",

@@ -10,3 +10,5 @@ build
 docs/build
 updater.egg-info
 __pycache__
+.vscode
+.tox

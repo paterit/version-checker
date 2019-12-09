@@ -20,16 +20,17 @@
 		"display_signatures": true,
 		"enable_signatures_tooltip": true,
 		"merge_signatures_and_doc": true,
-		"python_interpreter": ".venv/bin/python",
-		"validate_imports": true,
 		"pep8_ignore":
 		[
-		    "W503"
+			"W503",
+			"E501"
 		],
+		"pytest": ".venv/bin/pytest",
+		"python_interpreter": ".venv/bin/python",
+		"sublack.black_on_save": true,
+		"sublack.black_use_blackd": true,
 		"test_command": "make pytest",
 		"test_virtualenv": ".venv/bin/python",
-		"pytest": ".venv/bin/pytest",
-		"sublack.black_use_blackd": true,
-		"sublack.black_on_save": true
-	},
+		"validate_imports": true
+	}
 }

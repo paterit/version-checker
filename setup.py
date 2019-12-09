@@ -38,4 +38,5 @@ setup(
         updater=check_version:cli
     """,
     include_package_data=True,
+    python_requires=">=3.6.9",
 )
