@@ -7,23 +7,23 @@ verify_ssl = true
 black = "==18.6b4" # higher versions fail during installation
 pytest= "*"
 pytest-datafiles= "==2.0"
-sphinx = "==1.8.3"
-sphinx-click = "==2.0.1"
-sphinx-markdown-builder = "==0.4.1"
-isort = "==4.3.15"
+sphinx = "==2.2.2"
+sphinx-click = "==2.3.1"
+sphinx-markdown-builder = "==0.5.3"
+isort = "==4.3.21"
 pdbpp = "*"
 twine = "*"
 pylint = "*"
 
 [packages]
-loguru = "==0.2.5"
+loguru = "==0.4.0"
 behave = "==1.2.6"
-requests = "==2.20.0"
-packaging= "==18.0"
-plumbum= "==1.6.7"
-cachier= "==1.2.4"
+requests = "==2.22.0"
+packaging= "==19.2"
+plumbum= "==1.6.8"
+cachier= "==1.2.8"
 python-rex= "==0.4"
-pymongo= "==3.7.2" # to avoid warnings from cachier not not needed really
+pymongo= "==3.9.0" # to avoid warnings from cachier not not needed really
 click= "==7.0"
 
 [requires]
