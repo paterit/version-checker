@@ -32,6 +32,11 @@ comp = {
         "component_name": "requests",
         "current_version_tag": "2.20.0",
     },
+    "wily": {
+        "component_type": "pypi",
+        "component_name": "wily",
+        "current_version_tag": "100.0.0",
+    },
 }
 
 
@@ -54,6 +59,31 @@ def config_from_copy_of_test_dir_with_dir_param():
     config.git_commit = False
     config.read_from_yaml()
     return config
+
+
+def test_get_status_all_to_update():
+    config = config_from_copy_of_test_dir()
+    components_to_check = config.check()
+    config.update_files()
+    status = config.get_status()
+    for comp in components_to_check:
+        assert "UPDATE_STARTED for " + comp[0] in status
+        assert "UPDATE_DONE for " + comp[0] in status
+
+
+def test_get_status_skip_update():
+    config = components.Config(components_yaml_file=None)
+    config.add(components.factory.get(**comp["wily"]))
+    config.check()
+    config.update_files()
+    status = config.get_status()
+    assert "UPDATE_SKIPPED for wily" in status
+
+
+def test_load_config_without_yaml_file():
+    config = components.Config(components_yaml_file=None)
+    config.add(components.factory.get(**comp["Django"]))
+    assert config.count_components_to_update() == 1
 
 
 def test_save_next_version_to_yaml(tmp_path):

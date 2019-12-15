@@ -242,7 +242,7 @@ class Component(ABC):
 
     @abstractmethod
     def fetch_versions():
-        pass
+        """ should return a list of versions eg.: ('1.0.1', '2.0.2') """
 
     # TODO move max statement after self.next_version= to new mehtod: get_max_version_number()
     def check(self):
@@ -399,7 +399,7 @@ class ComponentFactory:
         elif component_type == "pypi":
             return PypiComponent(**args)
         else:
-            raise ValueError(component_type)
+            raise ValueError("Componet type: " + component_type + " :not implemented!")
 
 
 factory = ComponentFactory()

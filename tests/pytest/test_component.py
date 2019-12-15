@@ -97,9 +97,12 @@ def test_fetch_pypi_versions_no_repo():
 def test_component_checker_newer_version():
     glances_old = {**COMP["glances"], "current_version_tag": "v2.0.0"}
     glances_new = {**COMP["glances"], "current_version_tag": "v100.0.0"}
+    glances_latest = {**COMP["glances"], "current_version_tag": "latest"}
     checker = components.factory.get(**glances_old)
     assert checker.check() is True
     checker = components.factory.get(**glances_new)
+    assert checker.check() is False
+    checker = components.factory.get(**glances_latest)
     assert checker.check() is False
 
 
@@ -149,3 +152,10 @@ def test_update_file_with_two_components_with_same_version_tag_pypi(tmpdir):
 def test_docker_image_name_version_tag():
     comp = components.factory.get(**COMP["glances"])
     assert comp.name_version_tag(comp.current_version_tag) == "glances:v2.11.1"
+
+
+def test_wrong_component_type():
+    glances = {**COMP["glances"], "component_type": "not_exists"}
+    with pytest.raises(ValueError) as excinfo:
+        components.factory.get(**glances)
+    assert "not implemented" in str(excinfo.value)
