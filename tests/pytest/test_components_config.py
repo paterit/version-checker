@@ -307,6 +307,14 @@ def test_commit_changes():
     git = local["git"]
     with local.cwd(config.config_file.parent):
         ret = git_check(git["init"].run(retcode=None))
+        ret = git_check(
+            git["config", "--local", "user.name", "'Wojtek Tester'"].run(retcode=None)
+        )
+        ret = git_check(
+            git["config", "--local", "user.email", "'wojtek.tester@gmail.com'"].run(
+                retcode=None
+            )
+        )
         ret = git_check(git["add", "."].run(retcode=None))
         ret = git_check(git["commit", "-m", "'Initial commit'"].run(retcode=None))
         config.check()
