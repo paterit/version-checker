@@ -1,10 +1,11 @@
-from updater import components
+from updater import components, git_check, plumbum_msg
 from pathlib import Path
 from rex import rex
 import tempfile
 import shutil
 import pytest
 import os
+from plumbum import local
 
 
 FIXTURE_DIR = Path(".").absolute() / "tests/test_files"
@@ -298,3 +299,28 @@ def test_update_components_files_with_testing_negative(capfd):
     assert "Error" in str(excinfo.value)
     captured = capfd.readouterr()
     assert "Test KO" in captured.out, captured.out
+
+
+def test_commit_changes():
+    config = config_from_copy_of_test_dir()
+    config.git_commit = True
+    git = local["git"]
+    with local.cwd(config.config_file.parent):
+        ret = git_check(git["init"].run(retcode=None))
+        ret = git_check(git["add", "."].run(retcode=None))
+        ret = git_check(git["commit", "-m", "'Initial commit'"].run(retcode=None))
+        config.check()
+        config.update_files()
+        ret = git_check(git["rev-list", "HEAD", "--count"].run(retcode=None))
+        assert "6\n" in plumbum_msg(ret)
+
+
+def test_get_versions_info():
+    config = config_from_copy_of_test_dir()
+    config.check()
+    info = config.get_versions_info()
+    assert "Django - current: 2.2.8 next:" in info[0]
+    assert "glances - current: v2.11.0 next:" in info[1]
+    assert "logspout - current: v3.1 next:" in info[2]
+    assert "python - current: 3.6.6-alpine3.8 next:" in info[3]
+    assert "requests - current: 2.20.0 next:" in info[4]

@@ -91,7 +91,7 @@ def check(ctx, component_type, component, repo_name, version_tag, verbose, clear
     print_yaml = ctx.obj["print_yaml"]
 
     if clear_cache:
-        components.clear_docker_images_cache()
+        components.clear_versions_cache()
         sys.exit(0)
 
     config.read_from_yaml()

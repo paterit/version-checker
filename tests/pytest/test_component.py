@@ -159,3 +159,23 @@ def test_wrong_component_type():
     with pytest.raises(ValueError) as excinfo:
         components.factory.get(**glances)
     assert "not implemented" in str(excinfo.value)
+
+
+def test_clear_versions_cache():
+    check_pypi_versions("Django", "2.1.2")
+    check_docker_images_versions("gliderlabs", "logspout", "v3.1")
+    components.clear_versions_cache()
+    components.clear_docker_images_cache()
+    check_pypi_versions("Django", "2.1.2")
+    check_docker_images_versions("gliderlabs", "logspout", "v3.1")
+    assert True
+
+
+def test_error_in_getting_token_for_docker_image_version_info():
+    with pytest.raises(Exception) as excinfo:
+        components.fetch_docker_images_versions(
+            "gliderlabs",
+            "logspout",
+            token_url="https://auth.docker.io/token_get_400_error",
+        )
+    assert "Could not get auth token" in str(excinfo.value)

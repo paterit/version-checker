@@ -320,13 +320,18 @@ class Component(ABC):
         return counter
 
 
+# TODO mark as deprecated
 def clear_docker_images_cache():
+    clear_versions_cache()
+
+
+def clear_versions_cache():
     fetch_docker_images_versions.clear_cache()
     fetch_pypi_versions.clear_cache()
 
 
 @cachier(stale_after=datetime.timedelta(days=3))
-def fetch_docker_images_versions(repo_name, component_name):
+def fetch_docker_images_versions(repo_name, component_name, token_url=None):
     logger.info(repo_name + ":" + component_name + " - NOT CACHED")
     payload = {
         "service": "registry.docker.io",
@@ -334,8 +339,8 @@ def fetch_docker_images_versions(repo_name, component_name):
             repo=repo_name, image=component_name
         ),
     }
-
-    r = requests.get("https://auth.docker.io/token", params=payload)
+    token_url = token_url or DockerImageComponent.TOKEN_URL
+    r = requests.get(token_url, params=payload)
     if not r.status_code == 200:
         print("Error status {}".format(r.status_code))
         raise Exception("Could not get auth token")
@@ -363,6 +368,7 @@ def fetch_pypi_versions(component_name):
 class DockerImageComponent(Component):
 
     DEFAULT_VERSION_PATTERN = "{component}:{version}"
+    TOKEN_URL = "https://auth.docker.io/token"
 
     def __init__(self, repo_name, component_name, current_version_tag):
         super(DockerImageComponent, self).__init__(component_name, current_version_tag)
