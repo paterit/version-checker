@@ -183,6 +183,16 @@ def test_save_config_dry_run():
     assert content1 == content2
 
 
+def test_save_config_in_different_location(tmp_path):
+    config_file = tmp_path / "components2.yaml"
+    config = config_from_copy_of_test_dir()
+    config.save_config(destination_file=None, dry_run=False, print_yaml=False)
+    config.save_config(destination_file=config_file, dry_run=False, print_yaml=False)
+    content1 = config.config_file.read_text()
+    content2 = config_file.read_text()
+    assert content1 == content2
+
+
 def test_save_config_print_yaml(capfd):
     config = config_from_copy_of_test_dir()
     config.save_config(destination_file=None, dry_run=True, print_yaml=True)

@@ -12,3 +12,4 @@ updater.egg-info
 __pycache__
 .vscode
 .tox
+.coverage

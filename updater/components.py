@@ -94,15 +94,13 @@ class Config:
         if print_yaml:
             click.echo(pprint.pformat(yaml.dump(self.components_to_dict()), indent=4))
 
-    def read_from_yaml(self, file=None, clear_components=True):
+    def read_from_yaml(self, file=None):
         read_file = file or self.config_file
-        if read_file and read_file.is_file():
-            components_dict = yaml.safe_load(open(read_file))
-        else:
-            components_dict = {}
+        self.components = []
 
-        if clear_components:
-            self.components = []
+        components_dict = (
+            yaml.safe_load(open(read_file)) if read_file and read_file.is_file() else {}
+        )
 
         for component_name in components_dict:
             compd = components_dict[component_name]
@@ -164,6 +162,7 @@ class Config:
                     git["commit", f"--message=%s" % commit_message].run(retcode=None)
                 )
 
+    # TODO move code for updating single component outside to new methods
     def update_files(self, dry_run=False):
         counter = 0
         for component in self.components:
@@ -245,6 +244,7 @@ class Component(ABC):
     def fetch_versions():
         pass
 
+    # TODO move max statement after self.next_version= to new mehtod: get_max_version_number()
     def check(self):
         if self.current_version_tag not in self.LATEST_TAGS:
             self.version_tags = self.fetch_versions()
@@ -266,6 +266,7 @@ class Component(ABC):
             "current-version": self.current_version_tag,
             "next-version": self.next_version_tag,
         }
+
         if self.prefix != self.DEFAULT_PREFIX:
             ret["prefix"] = self.prefix
         if self.filter != self.DEFAULT_FILTER:

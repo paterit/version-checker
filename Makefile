@@ -80,3 +80,16 @@ pyenv-install:
 	pyenv local 3.6.9
 	python -m pip install tox
 	pyenv local 3.8.0 3.7.5 3.6.9
+
+cov-pytest:
+	pipenv run python -m coverage run --source=updater -m pytest --disable-warnings -vv -x
+	pipenv run python -m coverage report -m
+
+cov-sbe:
+	pipenv run python -m coverage run --source=updater -m behave --tags=-skip --tags=-wip --stop --no-skipped tests/features
+	pipenv run python -m coverage report -m
+
+cov:
+	pipenv run python -m coverage run --source=updater -a -m pytest --disable-warnings -vv -x
+	pipenv run python -m coverage run --source=updater -a -m behave --tags=-skip --tags=-wip --stop --no-skipped tests/features
+	pipenv run python -m coverage report -m
