@@ -161,6 +161,7 @@ def test_wrong_component_type():
     assert "not implemented" in str(excinfo.value)
 
 
+@pytest.mark.slow
 def test_clear_versions_cache():
     check_pypi_versions("Django", "2.1.2")
     check_docker_images_versions("gliderlabs", "logspout", "v3.1")
@@ -171,6 +172,7 @@ def test_clear_versions_cache():
     assert True
 
 
+@pytest.mark.slow
 def test_error_in_getting_token_for_docker_image_version_info():
     with pytest.raises(Exception) as excinfo:
         components.fetch_docker_images_versions(

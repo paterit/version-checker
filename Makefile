@@ -24,6 +24,8 @@ sbe:
 sbe-wip:
 	pipenv run behave --tags=wip --stop --no-skipped --no-summary --no-logcapture --no-capture-stderr --no-logcapture --logging-level=DEBUG tests/features
 pytest:
+	pipenv run python -m pytest --disable-warnings -vv -x -m "not slow"
+pytest-all:
 	pipenv run python -m pytest --disable-warnings -vv -x
 pytest-wip:
 	pipenv run python -m pytest --disable-warnings -vv -m wip
