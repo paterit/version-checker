@@ -72,16 +72,16 @@ tox:
 	python -m tox
 
 pyenv-install:
-	pyenv install 3.8.0
-	pyenv local 3.8.0
+	pyenv install 3.8.6
+	pyenv local 3.8.6
 	python -m pip install tox
-	pyenv install 3.7.5
-	pyenv local 3.7.5
+	pyenv install 3.7.9
+	pyenv local 3.7.9
 	python -m pip install tox
-	pyenv install 3.6.9
-	pyenv local 3.6.9
+	pyenv install 3.6.12
+	pyenv local 3.6.12
 	python -m pip install tox
-	pyenv local 3.8.0 3.7.5 3.6.9
+	pyenv local 3.8.6 3.7.9 3.6.12
 
 cov-pytest:
 	pipenv run python -m coverage run --source=updater -m pytest --disable-warnings -vv -x

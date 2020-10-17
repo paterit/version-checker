@@ -36,6 +36,7 @@ setup(
         "python-rex==0.4",
         "pymongo==3.9.0",
         "click==7.0",
+        "PyYAML==5.3.1",
     ],
     entry_points="""
         [console_scripts]
