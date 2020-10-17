@@ -17,6 +17,7 @@ pylint = "*"
 wily = "*"
 radon = "*"
 coverage = "*"
+wheel = "*"
 
 [packages]
 loguru = "==0.4.0"
@@ -26,7 +27,7 @@ packaging= "==19.2"
 plumbum= "==1.6.8"
 cachier= "==1.2.8"
 python-rex= "==0.4"
-pymongo= "==3.9.0" # to avoid warnings from cachier not not needed really
+pymongo= "==3.9.0" # to avoid warnings from cachier not needed really
 click= "==7.0"
 PyYAML= "==5.3.1"
 
