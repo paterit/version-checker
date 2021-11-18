@@ -26,6 +26,7 @@ def step_impl(context):
         "--component=" + context.component_check["component_name"],
         "--repo_name=" + context.component_check["repo_name"],
         "--version_tag=" + context.component_check["version"],
+        "--ignore-default-file",
     ].run(retcode=None)
     context.response = ret
     assert ret[0] == 0, "Error returned by script:\n" + plumbum_msg(ret)

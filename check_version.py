@@ -82,8 +82,23 @@ def cli(ctx, file, destination_file, dry_run, print_yaml):
     is_flag=True,
     help="Clear all the cached responses about versions in rpositories.",
 )
+@click.option(
+    "--ignore-default-file",
+    "ignore_default_file",
+    is_flag=True,
+    help="Ignore components.yaml file in local directory if exists.",
+)
 @click.pass_context
-def check(ctx, component_type, component, repo_name, version_tag, verbose, clear_cache):
+def check(
+    ctx,
+    component_type,
+    component,
+    repo_name,
+    version_tag,
+    verbose,
+    clear_cache,
+    ignore_default_file,
+):
     """Check if new versions of defined components are available."""
     config = ctx.obj["config"]
     destination_file = ctx.obj["destination_file"]
@@ -93,6 +108,9 @@ def check(ctx, component_type, component, repo_name, version_tag, verbose, clear
     if clear_cache:
         components.clear_versions_cache()
         sys.exit(0)
+
+    if ignore_default_file:
+        config.config_file = None
 
     config.read_from_yaml()
 
