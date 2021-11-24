@@ -6,8 +6,9 @@ import shutil
 import pytest
 import os
 from plumbum import local
+import pprint
 
-
+pp = pprint.PrettyPrinter(indent=4)
 FIXTURE_DIR = Path(".").absolute() / "tests/test_files"
 
 comp = {
@@ -332,3 +333,12 @@ def test_get_versions_info():
     assert "logspout - current: v3.1 next:" in info[2]
     assert "python - current: 3.6.6-alpine3.8 next:" in info[3]
     assert "requests - current: 2.20.0 next:" in info[4]
+
+
+def test_add_requirements_from_pipfile():
+    config = config_from_copy_of_test_dir()
+    config.add_requirements_from_pipfile()
+    # pp.pprint(config.components)
+    assert any(x.component_name == "behave" for x in config.components)
+    assert any(x.component_name == "cachier" for x in config.components)
+    assert not any(x.component_name == "xwrong" for x in config.components)

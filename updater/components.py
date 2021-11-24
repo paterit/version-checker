@@ -4,6 +4,8 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 import pprint
 from subprocess import run
+import pkg_resources
+
 
 import click
 import requests
@@ -100,7 +102,7 @@ class Config:
 
         components_dict = (
             yaml.safe_load(open(read_file)) if read_file and read_file.is_file() else {}
-        )
+        ) or {}
 
         for component_name in components_dict:
             compd = components_dict[component_name]
@@ -122,6 +124,36 @@ class Config:
             comp.version_pattern = compd.get(
                 "version-pattern", comp.DEFAULT_VERSION_PATTERN
             )
+
+    def add_requirements_from_pipfile(self, req_file=None):
+        file_to_read = Path(req_file or self.project_dir / "./requirements.txt")
+        assert (
+            file_to_read.is_file()
+        ), f"Requirements file {str(file_to_read)} does not exist."
+        with file_to_read.open() as requirements_txt:
+            for requirement in pkg_resources.parse_requirements(requirements_txt):
+                if len(requirement.specs) == 0 or requirement.specs[0][0] != "==":
+                    print(
+                        f"{requirement.project_name} has incompatible version specifier: {requirement.specs}"
+                    )
+                    continue
+
+                name, version = (requirement.project_name, requirement.specs[0][1])
+                if not any(
+                    x.component_name == name and x.component_type == "pypi"
+                    for x in self.components
+                ):
+                    self.add(
+                        factory.get(
+                            component_type="pypi",
+                            component_name=name,
+                            current_version_tag=version,
+                        )
+                    )
+                    comp = self.components[-1]
+                    comp.files = ["Pipfile"]
+                    comp.version_pattern = '{component} = "=={version}"'
+                    comp.filter = "/^" + (version.count(".")) * "\\d+\\." + "\\d+$/"
 
     def count_components_to_update(self):
         self.check()
@@ -242,7 +274,7 @@ class Component(ABC):
 
     @abstractmethod
     def fetch_versions():
-        """ should return a list of versions eg.: ('1.0.1', '2.0.2') """
+        """should return a list of versions eg.: ('1.0.1', '2.0.2')"""
 
     # TODO move max statement after self.next_version= to new mehtod: get_max_version_number()
     def check(self):
@@ -298,22 +330,21 @@ class Component(ABC):
         for file_name in self.files:
             file = Path(Path(base_dir) / file_name)
             orig_content = file.read_text()
-            assert self.count_occurence(orig_content) <= 1, (
-                "To many verison of %s occurence in %s!"
-                % (self.current_version_tag, orig_content)
+            assert (
+                self.count_occurence(orig_content) <= 1
+            ), "To many verison of %s occurence in %s!" % (
+                self.current_version_tag,
+                orig_content,
             )
             if not dry_run:
                 new_content = self.replace(orig_content)
-                assert new_content != orig_content, (
-                    "Error in version replacment for %s: no replacement done for current_version"
-                    % self.component_name
-                    + ": %s and next_version: %s\nOrigin\n%s\nNew\n%s."
-                    % (
-                        self.name_version_tag(self.current_version_tag),
-                        self.name_version_tag(self.next_version_tag),
-                        orig_content,
-                        new_content,
-                    )
+                assert (
+                    new_content != orig_content
+                ), "Error in version replacment for %s: no replacement done for current_version" % self.component_name + ": %s and next_version: %s\nOrigin\n%s\nNew\n%s." % (
+                    self.name_version_tag(self.current_version_tag),
+                    self.name_version_tag(self.next_version_tag),
+                    orig_content,
+                    new_content,
                 )
                 file.write_text(new_content)
             counter += 1

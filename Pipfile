@@ -20,16 +20,16 @@ coverage = "*"
 wheel = "*"
 
 [packages]
-loguru = "==0.4.0"
+loguru = "==0.5.3"
 behave = "==1.2.6"
-requests = "==2.22.0"
-packaging= "==19.2"
-plumbum= "==1.6.8"
-cachier= "==1.2.8"
-python-rex= "==0.4"
-pymongo= "==3.9.0" # to avoid warnings from cachier not needed really
-click= "==7.0"
-PyYAML= "==5.3.1"
+requests = "==2.26.0"
+packaging = "==21.3"
+plumbum = "==1.7.1"
+cachier = "==1.5.3"
+python-rex = "==0.4"
+pymongo = "==3.12.1" # to avoid warnings from cachier not needed really
+click = "==7.1"
+PyYAML = "==5.3.1"
 
 [requires]
 python_version = "3.8"

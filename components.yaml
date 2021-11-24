@@ -1,0 +1,80 @@
+PyYAML:
+  component-type: pypi
+  current-version: 5.4.1
+  files:
+  - Pipfile
+  filter: /^\d+\.\d+\.\d+$/
+  next-version: 5.4.1
+  version-pattern: '{component} = "=={version}"'
+behave:
+  component-type: pypi
+  current-version: 1.2.6
+  files:
+  - Pipfile
+  filter: /^\d+\.\d+\.\d+$/
+  next-version: 1.2.6
+  version-pattern: '{component} = "=={version}"'
+cachier:
+  component-type: pypi
+  current-version: 1.5.3
+  files:
+  - Pipfile
+  filter: /^\d+\.\d+\.\d+$/
+  next-version: 1.5.3
+  version-pattern: '{component} = "=={version}"'
+click:
+  component-type: pypi
+  current-version: '7.1'
+  files:
+  - Pipfile
+  filter: /^\d+\.\d+$/
+  next-version: '7.1'
+  version-pattern: '{component} = "=={version}"'
+loguru:
+  component-type: pypi
+  current-version: 0.5.3
+  files:
+  - Pipfile
+  filter: /^\d+\.\d+\.\d+$/
+  next-version: 0.5.3
+  version-pattern: '{component} = "=={version}"'
+packaging:
+  component-type: pypi
+  current-version: '21.3'
+  files:
+  - Pipfile
+  filter: /^\d+\.\d+$/
+  next-version: '21.3'
+  version-pattern: '{component} = "=={version}"'
+plumbum:
+  component-type: pypi
+  current-version: 1.7.1
+  files:
+  - Pipfile
+  filter: /^\d+\.\d+\.\d+$/
+  next-version: 1.7.1
+  version-pattern: '{component} = "=={version}"'
+pymongo:
+  component-type: pypi
+  current-version: 3.12.1
+  files:
+  - Pipfile
+  filter: /^\d+\.\d+\.\d+$/
+  next-version: 3.12.1
+  version-pattern: '{component} = "=={version}"'
+python-rex:
+  component-type: pypi
+  current-version: '0.4'
+  files:
+  - Pipfile
+  filter: /^\d+\.\d+$/
+  next-version: '0.4'
+  version-pattern: '{component} = "=={version}"'
+requests:
+  component-type: pypi
+  current-version: 2.26.0
+  files:
+  - Pipfile
+  filter: /^\d+\.\d+\.\d+$/
+  next-version: 2.26.0
+  version-pattern: '{component} = "=={version}"'

@@ -194,5 +194,35 @@ def update(ctx, test_command, test_dir, git_commit, project_dir, verbose):
         sys.exit(2)
 
 
+@cli.command()
+@click.option(
+    "--source",
+    help="Source of the requirement.txt file.",
+    type=click.Choice(["requirements", "pipfile"]),
+)
+@click.option(
+    "--requirements-file",
+    "requirements_file",
+    type=click.Path(exists=True),
+    help="Requirements.txt file from which packages and versions will be added to components.yaml file.",
+)
+@click.option(
+    "--verbose",
+    is_flag=True,
+    help="Print at the end detailed info for each component about update process.",
+)
+@click.pass_context
+def import_req(ctx, source, requirements_file, verbose):
+    """Imports python packages from requirements.txt file."""
+    config = ctx.obj["config"]
+    dry_run = ctx.obj["dry_run"]
+    destination_file = ctx.obj["destination_file"]
+    print_yaml = ctx.obj["print_yaml"]
+
+    config.read_from_yaml()
+    config.add_requirements_from_pipfile(requirements_file)
+    config.save_config(destination_file, dry_run, print_yaml)
+
+
 if __name__ == "__main__":
-    cli(obj={})
+    cli(obj={})  # pragma: no cover

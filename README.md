@@ -22,7 +22,7 @@ It will, for each defined component:
 
 1. Check if there are new versions of your components available
 
-1. Replace in all files version numbers to the newest one
+1. Replace in all files version numbers with the newest one
 
 1. Run tests
 
@@ -50,7 +50,7 @@ YAML file with components configuration. If not present other options for ‘che
 
 
 #### --destination-file <destination_file>
-If this option is given components configuration with new versions will be wrtten here.
+If this option is given components configuration with new versions will be written here.
 
 
 #### --dry-run
@@ -58,7 +58,7 @@ If set no changes to any files are written.
 
 
 #### --print
-Config is printed to stdout at the end.
+Prints config to stdout at the end.
 
 #### check
 
@@ -76,7 +76,7 @@ Component type: docker-image or pypi package.
 
 
 #### --component <component>
-Component name to version veryfication.
+Component name.
 
 
 #### --repo_name <repo_name>
@@ -84,11 +84,11 @@ Repository name if component is docker image.
 
 
 #### --version_tag <version_tag>
-Version tag eg. v2.3.0 against which new version check will be run.
+Version tag eg. v2.3.0 against which version check will be run.
 
 
 #### --verbose
-Print detailed info for each component about new version avaialble.
+Print detailed info for each component about the new version avaialble.
 
 #### update
 

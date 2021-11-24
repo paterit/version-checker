@@ -8,7 +8,6 @@ RET_CODE_SUCCESS = 0
 @given(
     u"Component with {component_type}, {repo_name}, {component_name} and {version} as parameters"
 )
-# @given(u"Docker image name {repo_name}/{component} and {version} as parameters")
 def step_impl(context, component_type, repo_name, component_name, version):
     context.component_check["component_type"] = component_type
     context.component_check["component_name"] = component_name

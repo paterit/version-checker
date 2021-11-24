@@ -3,7 +3,8 @@ check:
 		python check_version.py \
 		--file=tests/test_files/components.yaml \
 		--dry-run \
-		check
+		check \
+		--verbose
 
 update:
 	@pipenv run \
@@ -12,6 +13,30 @@ update:
 		--dry-run \
 		update \
 		--verbose
+
+self-check:
+	@pipenv run \
+		python check_version.py \
+		--file=components.yaml \
+		--dry-run \
+		check \
+		--verbose
+
+self-update:
+	@pipenv run \
+		python check_version.py \
+		--file=components.yaml \
+		update \
+		--test-command="make test-pipenv-install"
+
+self-import-req:
+	@pipenv run \
+		python check_version.py \
+		--file=components.yaml \
+		import-req \
+		--requirements-file=requirements.txt \
+		--verbose
+
 
 clear-cache:
 	@pipenv run python check_version.py check --clear-cache
@@ -34,6 +59,11 @@ pytest-help:
 black: 
 	pipenv run black .
 test:
+	make pytest
+	make sbe
+
+test-pipenv-install:
+	pipenv install --skip-lock
 	make pytest
 	make sbe
 
@@ -86,15 +116,10 @@ pyenv-install:
 	python -m pip install tox
 	pyenv local 3.8.12 3.7.12 3.6.15 3.9.9
 
-cov-pytest:
-	pipenv run python -m coverage run --source=updater -m pytest --disable-warnings -vv -x
-	pipenv run python -m coverage report -m
-
-cov-sbe:
-	pipenv run python -m coverage run --source=updater -m behave --tags=-skip --tags=-wip --stop --no-skipped tests/features
-	pipenv run python -m coverage report -m
-
 cov:
-	pipenv run python -m coverage run --source=updater -a -m pytest --disable-warnings -vv -x
-	pipenv run python -m coverage run --source=updater -a -m behave --tags=-skip --tags=-wip --stop --no-skipped tests/features
+	pipenv run python -m coverage run --source=updater -m pytest --disable-warnings -vv -x -m "not check_version"
+	pipenv run python -m coverage report -m
+
+cov-all:
+	pipenv run python -m coverage run --source=. --omit="*/.venv/*,*/tests/*,setup.py" -m pytest --disable-warnings -vv -x 
 	pipenv run python -m coverage report -m
