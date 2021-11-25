@@ -6,7 +6,7 @@ contain the root `toctree` directive. -->
 
 ## Problem to solve
 
-In project where there are many components to track new versions (docker
+In the project where there are many components to track new versions (docker
 images and pypi packages) this tool automates finding new versions,
 running tests and commit changes to git.
 
@@ -20,13 +20,17 @@ root of your project directory and run:
 
 It will, for each defined component:
 
+
 1. Check if there are new versions of your components available
 
-1. Replace in all files version numbers with the newest one
 
-1. Run tests
+2. Replace in all files version numbers to the newest one
 
-1. Add and commit changes to git
+
+3. Run tests
+
+
+4. Add and commit changes to git
 
 ## Installation
 
@@ -45,6 +49,10 @@ updater [OPTIONS] COMMAND [ARGS]...
 ### Options
 
 
+#### --version
+Show the version and exit.
+
+
 #### --file <file>
 YAML file with components configuration. If not present other options for ‘check’ command are required.
 
@@ -58,7 +66,7 @@ If set no changes to any files are written.
 
 
 #### --print
-Prints config to stdout at the end.
+Config is printed to stdout at the end.
 
 #### check
 
@@ -75,20 +83,62 @@ updater check [OPTIONS]
 Component type: docker-image or pypi package.
 
 
+* **Options**
+
+    docker-image|pypi
+
+
+
 #### --component <component>
-Component name.
+A component name for which the version should be verified.
 
 
 #### --repo_name <repo_name>
-Repository name if component is docker image.
+A repository name if component is a docker image.
 
 
 #### --version_tag <version_tag>
-Version tag eg. v2.3.0 against which version check will be run.
+Version tag eg. v2.3.0 against which new version check will be run.
 
 
 #### --verbose
-Print detailed info for each component about the new version avaialble.
+Print detailed info for each component about new version avaialble.
+
+
+#### --clear-cache
+Clear all the cached responses about versions in rpositories.
+
+
+#### --ignore-default-file
+Ignore components.yaml file in local directory if exists.
+
+#### import-req
+
+Imports python packages from requirements.txt file.
+
+```
+updater import-req [OPTIONS]
+```
+
+### Options
+
+
+#### --source <source>
+Source of the requirement.txt file.
+
+
+* **Options**
+
+    requirements|pipfile
+
+
+
+#### --requirements-file <requirements_file>
+Requirements.txt file from which packages and versions will be added to components.yaml file.
+
+
+#### --verbose
+Print at the end detailed info for each component about update process.
 
 #### update
 
@@ -115,6 +165,10 @@ When set after each components update, git commit is performed in active branch.
 
 #### --project-dir <project_dir>
 If given, then it will be treated as a root dir for paths in config file.
+
+
+#### --verbose
+Print at the end detailed info for each component about update process.
 
 <!-- Indices and tables
 ==================

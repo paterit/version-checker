@@ -332,11 +332,11 @@ class Component(ABC):
             orig_content = file.read_text()
             if self.count_occurence(orig_content) > 1:
                 logger.error(
-                    "To many verison of %s occurence in %s!"
+                    "Too many versions of %s occurence in %s!"
                     % (self.current_version_tag, orig_content)
                 )
                 raise Exception(
-                    "To many verison of %s occurence in %s!"
+                    "Too many versions of %s occurence in %s!"
                     % (self.current_version_tag, orig_content)
                 )
 

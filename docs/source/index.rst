@@ -11,7 +11,7 @@ Version updater for components in your codebase
 Problem to solve
 ----------------
 
-In project where there are many components to track new versions (docker
+In the project where there are many components to track new versions (docker
 images and pypi packages) this tool automates finding new versions,
 running tests and commit changes to git.
 

@@ -125,6 +125,20 @@ def test_update_file_with_version_wrong_file(tmpdir):
     assert "No such file or directory" in str(excinfo.value)
 
 
+def test_update_file_with_double_entry_for_component(tmpdir):
+    comp = components.factory.get(**COMP["logspout"])
+    comp.files = ["file1"]
+    comp.next_version = parse("v3.3")
+    comp.next_version_tag = "v3.3"
+    file1 = tmpdir / "file1"
+    file1.write_text(
+        "gliderlabs/logspout:v3.1\ngliderlabs/logspout:v3.1", encoding=None
+    )
+    with pytest.raises(Exception) as excinfo:
+        comp.update_files(tmpdir)
+    assert "Too many versions of" in str(excinfo.value)
+
+
 def test_update_file_with_version_not_updated(tmpdir):
     comp = components.factory.get(**COMP["logspout"])
     comp.files = ["file1"]
