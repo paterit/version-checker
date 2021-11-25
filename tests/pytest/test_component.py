@@ -134,7 +134,7 @@ def test_update_file_with_version_not_updated(tmpdir):
     comp.files = ["file1"]
     file1 = tmpdir / "file1"
     file1.write_text("v3.3", encoding=None)
-    with pytest.raises(AssertionError) as excinfo:
+    with pytest.raises(Exception) as excinfo:
         comp.update_files(tmpdir)
     assert "no replacement done for" in str(excinfo.value)
 

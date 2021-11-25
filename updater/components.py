@@ -330,22 +330,33 @@ class Component(ABC):
         for file_name in self.files:
             file = Path(Path(base_dir) / file_name)
             orig_content = file.read_text()
-            assert (
-                self.count_occurence(orig_content) <= 1
-            ), "To many verison of %s occurence in %s!" % (
-                self.current_version_tag,
-                orig_content,
-            )
+            if self.count_occurence(orig_content) > 1:
+                logger.error(
+                    "To many verison of %s occurence in %s!"
+                    % (self.current_version_tag, orig_content)
+                )
+                raise Exception(
+                    "To many verison of %s occurence in %s!"
+                    % (self.current_version_tag, orig_content)
+                )
+
             if not dry_run:
                 new_content = self.replace(orig_content)
-                assert (
-                    new_content != orig_content
-                ), "Error in version replacment for %s: no replacement done for current_version" % self.component_name + ": %s and next_version: %s\nOrigin\n%s\nNew\n%s." % (
-                    self.name_version_tag(self.current_version_tag),
-                    self.name_version_tag(self.next_version_tag),
-                    orig_content,
-                    new_content,
-                )
+                if new_content == orig_content:
+                    logger.error(
+                        "Error in version replacment for %s: no replacement done for current_version"
+                        % self.component_name
+                        + ": %s and next_version: %s in file: %s"
+                        % (
+                            self.name_version_tag(self.current_version_tag),
+                            self.name_version_tag(self.next_version_tag),
+                            str(file),
+                        )
+                    )
+                    raise Exception(
+                        "Error in version replacment for %s: no replacement done for current_version"
+                        % self.component_name
+                    )
                 file.write_text(new_content)
             counter += 1
         return counter

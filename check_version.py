@@ -184,7 +184,6 @@ def update(ctx, test_command, test_dir, git_commit, project_dir, verbose):
             click.echo(config.get_status())
             logger.trace(config.get_status())
     except Exception as e:
-        logger.exception(e)
         logger.error(
             click.style("Something went wrong!!!", "red")
             + "\n"
