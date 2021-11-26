@@ -29,7 +29,7 @@ cachier = "==1.5.3"
 python-rex = "==0.4"
 pymongo = "==3.12.1" # to avoid warnings from cachier not needed really
 click = "==7.1"
-PyYAML = "==5.3.1"
+PyYAML = "==5.4.1"
 
 [requires]
 python_version = "3.8"

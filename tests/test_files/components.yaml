@@ -15,7 +15,7 @@ logspout:
   exclude-versions: [v3.2.6]
 Django:
   component-type: pypi
-  current-version: 2.2.8
+  current-version: 2.2.24
   filter: /^\d+\.\d+(\.\d+)?$/
   files: [app/requirements.txt]
 requests:
@@ -30,5 +30,3 @@ python:
   filter: /^\d+\.\d+\.\d+-alpine\d+\.\d+$/
   files: [locust/Dockerfile]
   version-pattern: "PYTHON_VERSION={version}"
-
-
