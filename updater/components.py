@@ -56,7 +56,7 @@ class Component(ABC):
                     if (tag == rex(self.filter)) and tag not in self.exclude_versions
                 ]
             )
-            self.next_version_tag = (self.prefix or "") + str(self.next_version)
+            self.next_version_tag = f"{(self.prefix or '')}{str(self.next_version)}"
 
         return self.newer_version_exists()
 
@@ -100,30 +100,26 @@ class Component(ABC):
             orig_content = file.read_text()
             if self.count_occurence(orig_content) > 1:
                 logger.error(
-                    "Too many versions of %s occurence in %s!"
-                    % (self.current_version_tag, orig_content)
+                    f"Too many versions of {self.current_version_tag} occurence in {orig_content}!"
                 )
                 raise Exception(
-                    "Too many versions of %s occurence in %s!"
-                    % (self.current_version_tag, orig_content)
+                    f"Too many versions of {self.current_version_tag} occurence in {orig_content}!"
                 )
 
             if not dry_run:
                 new_content = self.replace(orig_content)
                 if new_content == orig_content:
                     logger.error(
-                        "Error in version replacment for %s: no replacement done for current_version"
-                        % self.component_name
-                        + ": %s and next_version: %s in file: %s"
-                        % (
-                            self.name_version_tag(self.current_version_tag),
-                            self.name_version_tag(self.next_version_tag),
-                            str(file),
+                        (
+                            f"Error in version replacment for {self.component_name}: "
+                            f"no replacement done for current_version"
+                            f": {self.name_version_tag(self.current_version_tag)} "
+                            f"and next_version: {self.name_version_tag(self.name_version_tag)} "
+                            f"in file: {str(file)}"
                         )
                     )
                     raise Exception(
-                        "Error in version replacment for %s: no replacement done for current_version"
-                        % self.component_name
+                        f"Error in version replacment for {self.component_name}: no replacement done for current_version"
                     )
                 file.write_text(new_content)
             counter += 1
@@ -142,32 +138,29 @@ def clear_versions_cache():
 
 @cachier(stale_after=datetime.timedelta(days=3))
 def fetch_docker_images_versions(repo_name, component_name, token_url=None):
-    logger.info(repo_name + ":" + component_name + " - NOT CACHED")
+    logger.info(f"{repo_name}:{component_name} - NOT CACHED")
     payload = {
         "service": "registry.docker.io",
-        "scope": "repository:{repo}/{image}:pull".format(
-            repo=repo_name, image=component_name
-        ),
+        "scope": f"repository:{repo_name}/{component_name}:pull",
     }
     token_url = token_url or DockerImageComponent.TOKEN_URL
     r = requests.get(token_url, params=payload)
     if not r.status_code == 200:
-        print("Error status {}".format(r.status_code))
+        print(f"Error status {r.status_code}")
         raise Exception("Could not get auth token")
 
     j = r.json()
     token = j["token"]
-    h = {"Authorization": "Bearer {}".format(token)}
+    h = {"Authorization": f"Bearer {token}"}
     r = requests.get(
-        "https://index.docker.io/v2/{}/{}/tags/list".format(repo_name, component_name),
-        headers=h,
+        f"https://index.docker.io/v2/{repo_name}/{component_name}/tags/list", headers=h
     )
     return r.json().get("tags", [])
 
 
 @cachier(stale_after=datetime.timedelta(days=3))
 def fetch_pypi_versions(component_name):
-    r = requests.get("https://pypi.org/pypi/{}/json".format(component_name))
+    r = requests.get(f"https://pypi.org/pypi/{component_name}/json")
     # it returns 404 if there is no such a package
     if not r.status_code == 200:
         return list()
@@ -215,7 +208,7 @@ class ComponentFactory:
         elif component_type == "pypi":
             return PypiComponent(**args)
         else:
-            raise ValueError("Componet type: " + component_type + " :not implemented!")
+            raise ValueError(f"Componet type: {component_type} :not implemented!")
 
 
 factory = ComponentFactory()

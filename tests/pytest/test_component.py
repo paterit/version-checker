@@ -52,23 +52,18 @@ def test_parse_compare_versions():
 
 def check_docker_images_versions(repo_name, component_name, version_tag):
     tags = components.fetch_docker_images_versions(repo_name, component_name)
-    assert len(tags) > 0, "Empty list returned %r" % tags
-    assert version_tag in tags, "For %s/%s lack of version: %s in tags %r" % (
-        repo_name,
-        component_name,
-        version_tag,
-        tags,
-    )
+    assert len(tags) > 0, f"Empty list returned {tags}"
+    assert (
+        version_tag in tags
+    ), f"For {repo_name}/{component_name} lack of version: {version_tag} in tags {tags}"
 
 
 def check_pypi_versions(component_name, version_tag):
     tags = components.fetch_pypi_versions(component_name)
-    assert len(tags) > 0, "Empty list returned %r" % tags
-    assert version_tag in tags, "For %s lack of version: %s in tags %r" % (
-        component_name,
-        version_tag,
-        tags,
-    )
+    assert len(tags) > 0, f"Empty list returned {tags}"
+    assert (
+        version_tag in tags
+    ), f"For {component_name} lack of version: {version_tag} in tags {tags}"
 
 
 def test_fetch_docker_images_versions():
@@ -86,12 +81,12 @@ def test_fetch_docker_images_versions_no_repo():
     tags = components.fetch_docker_images_versions(
         "repo_not_exists", "image_not_exists"
     )
-    assert len(tags) == 0, "Empty list returned %r" % tags
+    assert len(tags) == 0, f"Empty list returned {tags}"
 
 
 def test_fetch_pypi_versions_no_repo():
     tags = components.fetch_pypi_versions("package_not_exists")
-    assert len(tags) == 0, "Empty list returned %r" % tags
+    assert len(tags) == 0, f"Empty list returned {tags}"
 
 
 def test_component_checker_newer_version():

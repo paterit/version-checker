@@ -7,7 +7,7 @@ from updater import plumbum_msg, config_yaml
 import os
 
 
-@given(u"New version of component is set in config file")
+@given("New version of component is set in config file")
 def step_impl(context):
     # clean context to not interfere between scenarios
     context.update_versions = {}
@@ -21,7 +21,7 @@ def step_impl(context):
     context.update_versions["test_dir"] = test_dir
 
 
-@given(u"config file is in different location then project-dir param")
+@given("config file is in different location then project-dir param")
 def step_impl(context):
     ctx = context.update_versions
     ctx["project_dir"] = ctx["test_dir"]
@@ -31,21 +31,21 @@ def step_impl(context):
         ctx["project_dir"] / "config" / "components.yaml",
     )
     ctx["test_config_file"] = ctx["project_dir"] / "config" / "components.yaml"
-    ctx["params"].append("--project-dir=" + str(ctx["project_dir"]))
+    ctx["params"].append(f"--project-dir={str(ctx['project_dir'])}")
 
 
-@given(u"script is run with --verbose param")
+@given("script is run with --verbose param")
 def step_impl(context):
     context.update_versions["params"].append("--verbose")
 
 
-@when(u"script is run in update mode")
+@when("script is run in update mode")
 def step_impl(context):
     ctx = context.update_versions
     python = local["python"]
     params = [
         "check_version.py",
-        "--file=" + str(ctx["test_config_file"]),
+        f"--file={str(ctx['test_config_file'])}",
         "--print",
         "update",
     ]
@@ -53,10 +53,10 @@ def step_impl(context):
 
     ret = python[params].run(retcode=None)
     context.response = ret
-    assert ret[0] == 0, "Error returned by script:\n" + plumbum_msg(ret)
+    assert ret[0] == 0, f"Error returned by script:\n{plumbum_msg(ret)}"
 
 
-@then(u"replace version in files defined in config files")
+@then("replace version in files defined in config files")
 def step_impl(context):
     origin_content1 = (
         Path.cwd().joinpath("tests/test_files/glances/Dockerfile-glances").read_text()
@@ -67,9 +67,9 @@ def step_impl(context):
         .joinpath("glances/Dockerfile-glances")
         .read_text()
     )
-    assert origin_content1 != changed_content1, (
-        "Contents should be different:\n %r \n %r" % (origin_content1, changed_content1)
-    )
+    assert (
+        origin_content1 != changed_content1
+    ), f"Contents should be different:\n {origin_content1!r} \n {changed_content1!r}"
 
     origin_content2 = (
         Path.cwd().joinpath("tests/test_files/logspout/Dockerfile-logspout").read_text()
@@ -80,12 +80,12 @@ def step_impl(context):
         .joinpath("logspout/Dockerfile-logspout")
         .read_text()
     )
-    assert origin_content2 != changed_content2, (
-        "Contents should be different:\n %r \n %r" % (origin_content2, changed_content2)
-    )
+    assert (
+        origin_content2 != changed_content2
+    ), f"Contents should be different:\n {origin_content2!r} \n {changed_content2!r}"
 
 
-@then(u"there should status info in the script output")
+@then("there should be status info in the script output")
 def step_impl(context):
     assert config_yaml.Config.STATE_UPDATE_STARTED in str(
         context.response[1]

@@ -126,8 +126,8 @@ def check(
         )
 
     ret_mess = []
-    ret_mess.append("%d components to check" % len(config.components))
-    ret_mess.append("%d components to update" % config.count_components_to_update())
+    ret_mess.append(f"{len(config.components)} components to check")
+    ret_mess.append(f"{config.count_components_to_update()} components to update")
     config.save_config(destination_file, dry_run, print_yaml)
     if verbose:
         ret_mess.extend(config.get_versions_info())
@@ -186,10 +186,11 @@ def update(ctx, test_command, test_dir, git_commit, project_dir, verbose):
             logger.trace(config.get_status())
     except Exception as e:
         logger.error(
-            click.style("Something went wrong!!!", "red")
-            + "\n"
-            + "Config status:\n"
-            + config.get_status()
+            (
+                f'{click.style("Something went wrong!!!", "red")}\n'
+                f"Config status:\n"
+                f"{config.get_status()}"
+            )
         )
         sys.exit(2)
 

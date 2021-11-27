@@ -69,8 +69,8 @@ def test_get_status_all_to_update():
     config.update_files()
     status = config.get_status()
     for comp in components_to_check:
-        assert "UPDATE_STARTED for " + comp[0] in status
-        assert "UPDATE_DONE for " + comp[0] in status
+        assert f"UPDATE_STARTED for {comp[0]}" in status
+        assert f"UPDATE_DONE for {comp[0]}" in status
 
 
 def test_get_status_skip_update():

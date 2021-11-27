@@ -6,7 +6,7 @@ import shutil
 from updater import plumbum_msg
 
 
-@given(u"New version of component is set in defined files")
+@given("New version of component is set in defined files")
 def step_impl(context):
     test_dir = Path(tempfile.TemporaryDirectory().name)
     shutil.copytree(Path.cwd() / "tests/test_files", test_dir)
@@ -16,25 +16,25 @@ def step_impl(context):
     context.run_tests["test_dir"] = test_dir
 
 
-@when(u"script is run in update mode with test parameter")
+@when("script is run in update mode with test parameter")
 def step_impl(context):
     python = local["python"]
     ret = python[
         "check_version.py",
-        "--file=" + str(context.run_tests["test_config_file"]),
+        f"--file={str(context.run_tests['test_config_file'])}",
         "--print",
         "update",
         "--test-command=make test",
     ].run(retcode=None)
     context.response = ret
-    assert ret[0] == 0, "Error returned by script: %r" % str(ret)
+    assert ret[0] == 0, f"Error returned by script: {str(ret)!r}"
 
 
-@then(u"run test command and stop in case of failure")
+@then("run test command and stop in case of failure")
 def step_impl(context):
     assert (
         "Test OK" in context.response[1]
-    ), "'Test OK' is not found in output.\n" + plumbum_msg(context.response)
+    ), f"'Test OK' is not found in output.\n{plumbum_msg(context.response)}"
     assert (
         context.response[1].count("Test OK") == 5
-    ), "To few occurenc of 'Test OK'\n" + plumbum_msg(context.response)
+    ), f"To few occurenc of 'Test OK'\n{plumbum_msg(context.response)}"

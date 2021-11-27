@@ -30,7 +30,7 @@ class Config:
         if self.config_file:
             if not self.config_file.is_file():
                 logger.error(
-                    "Config file %s exists but it is not file." % str(self.config_file)
+                    f"Config file {self.config_file} exists but it is not file."
                 )
             self.project_dir = self.config_file.parent
         else:
@@ -45,21 +45,9 @@ class Config:
             self.status[component.component_name] = {}
         comp = self.status[component.component_name]
         if step in [self.STATE_UPDATE_STARTED, self.STATE_UPDATE_SKIPPED]:
-            message = (
-                step
-                + " for "
-                + component.component_name
-                + " in version "
-                + component.current_version_tag
-            )
+            message = f"{step} for {component.component_name} in version {component.current_version_tag}"
         elif step in [self.STATE_UPDATE_DONE]:
-            message = (
-                step
-                + " for "
-                + component.component_name
-                + " in version "
-                + component.next_version_tag
-            )
+            message = f"{step} for {component.component_name} in version {component.next_version_tag}"
         else:
             message = step
         comp[str(datetime.datetime.now())] = message
@@ -154,7 +142,9 @@ class Config:
                     elif req_source == "requirements":
                         comp.version_pattern = "{component}=={version}"
                         comp.files = ["requirements.txt"]
-                    comp.filter = "/^" + (version.count(".")) * "\\d+\\." + "\\d+$/"
+                    comp.filter = (
+                        "/^" + (version.count(".")) * "\\d+\\." + "\\d+$/"
+                    )  # due ot backslash being forbidden in f-strings inside curly braces
 
     def count_components_to_update(self):
         self.check()
@@ -167,13 +157,9 @@ class Config:
 
     def run_tests(self, processed_component):
         ret = run(self.test_command, cwd=(self.test_dir or self.project_dir))
-        assert ret.returncode == 0, (
-            click.style("Error!", fg="red")
-            + "( "
-            + processed_component.component_name
-            + " ) "
-            + str(ret)
-        )
+        assert (
+            ret.returncode == 0
+        ), f'{click.style("Error!", fg="red")} ( {processed_component.component_name} ) {str(ret)}'
 
     def commit_changes(self, component, from_version, to_version, dry_run):
         git = local["git"]
@@ -182,7 +168,7 @@ class Config:
             changed_files = ret[1].splitlines()
             assert set(component.files).issubset(
                 set(changed_files)
-            ), "Not all SRC files are in git changed files.\n" + plumbum_msg(ret)
+            ), f"Not all SRC files are in git changed files.\n{plumbum_msg(ret)}"
             if not dry_run:
                 git_check(git["add", self.config_file.name].run(retcode=None))
                 for file_name in component.files:
@@ -192,7 +178,7 @@ class Config:
                     f"updated from: {from_version} to: {to_version}"
                 )
                 git_check(
-                    git["commit", f"--message=%s" % commit_message].run(retcode=None)
+                    git["commit", f"--message={commit_message}"].run(retcode=None)
                 )
 
     # TODO move code for updating single component outside to new methods
@@ -230,11 +216,10 @@ class Config:
 
     def get_versions_info(self):
         new = [
-            c.component_name
-            + " - current: "
-            + c.current_version_tag
-            + " next: "
-            + (click.style(c.next_version_tag, fg="green"))
+            (
+                f"{c.component_name} - current: {c.current_version_tag} "
+                f"next: {click.style(c.next_version_tag, fg='green')}"
+            )
             for c in self.components
             if c.newer_version_exists()
         ]

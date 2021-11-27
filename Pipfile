@@ -18,6 +18,7 @@ wily = "*"
 radon = "*"
 coverage = "*"
 wheel = "*"
+flynt = "*"
 
 [packages]
 loguru = "==0.5.3"

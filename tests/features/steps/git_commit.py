@@ -3,10 +3,10 @@ from plumbum import local
 from behave import *
 import tempfile
 import shutil
-from updater import plumbum_msg, git_check
+from updater import plumbum_msg as pm, git_check
 
 
-@given(u"New version of component is set in defined files in git repo")
+@given("New version of component is set in defined files in git repo")
 def step_impl(context):
 
     test_dir = Path(tempfile.TemporaryDirectory().name)
@@ -17,7 +17,7 @@ def step_impl(context):
     context.git_commit["test_dir"] = test_dir
 
 
-@when(u"script is run in update mode with git-commit parameter")
+@when("script is run in update mode with git-commit parameter")
 def step_impl(context):
     python = local["python"]
     git = local["git"]
@@ -30,28 +30,22 @@ def step_impl(context):
 
     ret = python[
         "check_version.py",
-        "--file=" + str(context.git_commit["test_config_file"]),
+        f"--file={str(context.git_commit['test_config_file'])}",
         "update",
         "--git-commit",
     ].run(retcode=None)
     context.response = ret
-    assert ret[0] == 0, "Error returned by script.\n" + plumbum_msg(ret)
+    assert ret[0] == 0, f"Error returned by script.\n{pm(ret)}"
 
 
 # given and when are defined in rut_tests.py
-@then(u"there is same number of git commits than components defined")
+@then("there is same number of git commits than components defined")
 def step_impl(context):
     git = local["git"]
     with local.cwd(context.git_commit["test_dir"]):
         ret = git["log", "--pretty=oneline", "--abbrev-commit"].run(retcode=None)
         git_check(ret)
-    assert "logspout" in ret[1], "'logspout' is not found in output.\n" + plumbum_msg(
-        ret
-    )
-    assert "glances" in ret[1], "'logspout' is not found in output.\n" + plumbum_msg(
-        ret
-    )
-    assert "Django" in ret[1], "'logspout' is not found in output.\n" + plumbum_msg(ret)
-    assert "requests" in ret[1], "'logspout' is not found in output.\n" + plumbum_msg(
-        ret
-    )
+    assert "logspout" in ret[1], f"'logspout' is not found in output.\n{pm(ret)}"
+    assert "glances" in ret[1], f"'logspout' is not found in output.\n{pm(ret)}"
+    assert "Django" in ret[1], f"'logspout' is not found in output.\n{pm(ret)}"
+    assert "requests" in ret[1], f"'logspout' is not found in output.\n{pm(ret)}"

@@ -83,11 +83,11 @@ def test_import_req():
     result = runner.invoke(
         cli,
         [
-            "--file=" + str(config.config_file),
+            f"--file={str(config.config_file)}",
             "--print",
             "import-req",
             "--source=pipfile",
-            "--requirements-file=" + str(req_file),
+            f"--requirements-file={str(req_file)}",
         ],
     )
     assert result.exit_code == 0

@@ -117,7 +117,7 @@ pyenv-install:
 	pyenv local 3.8.12 3.7.12 3.6.15 3.9.9
 
 cov:
-	pipenv run python -m coverage run --source=updater -m pytest --disable-warnings -vv -x -m "not check_version"
+	pipenv run python -m coverage run --source=updater -m pytest --disable-warnings -vv -x 
 	pipenv run python -m coverage report -m
 
 cov-all:
