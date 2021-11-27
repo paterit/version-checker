@@ -5,7 +5,7 @@ import click
 from loguru import logger
 import pkg_resources
 
-from updater import components
+from updater import components, config_yaml
 
 
 @click.group()
@@ -46,10 +46,11 @@ def cli(ctx, file, destination_file, dry_run, print_yaml):
         config_file = Path.cwd().absolute().joinpath("components.yaml")
     else:
         config_file = None
+
     if ctx.obj is None:
         ctx.obj = {}
 
-    ctx.obj["config"] = components.Config(components_yaml_file=config_file)
+    ctx.obj["config"] = config_yaml.Config(components_yaml_file=config_file)
     ctx.obj["config_file"] = config_file
     ctx.obj["destination_file"] = destination_file
     ctx.obj["dry_run"] = dry_run

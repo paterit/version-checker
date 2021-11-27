@@ -3,7 +3,7 @@ from plumbum import local
 from behave import *
 import tempfile
 import shutil
-from updater import plumbum_msg, components
+from updater import plumbum_msg, config_yaml
 import os
 
 
@@ -87,6 +87,6 @@ def step_impl(context):
 
 @then(u"there should status info in the script output")
 def step_impl(context):
-    assert components.Config.STATE_UPDATE_STARTED in str(
+    assert config_yaml.Config.STATE_UPDATE_STARTED in str(
         context.response[1]
     ), plumbum_msg(context.response)

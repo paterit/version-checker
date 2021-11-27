@@ -1,4 +1,4 @@
-from updater import components, git_check, plumbum_msg
+from updater import components, config_yaml, plumbum_msg, git_check
 from pathlib import Path
 from rex import rex
 import tempfile
@@ -45,7 +45,7 @@ comp = {
 def config_from_copy_of_test_dir():
     test_dir = Path(tempfile.TemporaryDirectory().name)
     shutil.copytree(FIXTURE_DIR, test_dir)
-    config = components.Config(test_dir / "components.yaml")
+    config = config_yaml.Config(test_dir / "components.yaml")
     config.git_commit = False
     config.read_from_yaml()
     return config
@@ -56,7 +56,7 @@ def config_from_copy_of_test_dir_with_dir_param():
     shutil.copytree(FIXTURE_DIR, test_dir)
     os.makedirs(test_dir / "conf")
     shutil.move(test_dir / "components.yaml", test_dir / "conf/components_new.yaml")
-    config = components.Config(test_dir / "conf/components_new.yaml")
+    config = config_yaml.Config(test_dir / "conf/components_new.yaml")
     config.project_dir = test_dir
     config.git_commit = False
     config.read_from_yaml()
@@ -74,7 +74,7 @@ def test_get_status_all_to_update():
 
 
 def test_get_status_skip_update():
-    config = components.Config(components_yaml_file=None)
+    config = config_yaml.Config(components_yaml_file=None)
     config.add(components.factory.get(**comp["wily"]))
     config.check()
     config.update_files()
@@ -83,14 +83,14 @@ def test_get_status_skip_update():
 
 
 def test_load_config_without_yaml_file():
-    config = components.Config(components_yaml_file=None)
+    config = config_yaml.Config(components_yaml_file=None)
     config.add(components.factory.get(**comp["Django"]))
     assert config.count_components_to_update() == 1
 
 
 def test_save_next_version_to_yaml(tmp_path):
     config_file = tmp_path / "components.yaml"
-    config = components.Config(components_yaml_file=config_file)
+    config = config_yaml.Config(components_yaml_file=config_file)
     config.add(components.factory.get(**comp["logspout"]))
     config.add(components.factory.get(**comp["Django"]))
     to_update = config.count_components_to_update()
@@ -102,7 +102,7 @@ def test_save_next_version_to_yaml(tmp_path):
 
 def test_save_prefix_to_yaml(tmp_path):
     config_file = tmp_path / "components.yaml"
-    config = components.Config(components_yaml_file=config_file)
+    config = config_yaml.Config(components_yaml_file=config_file)
     config.add(components.factory.get(**comp["logspout"]))
     config.components[0].prefix = "version_prefix"
     config.save_to_yaml()
@@ -112,7 +112,7 @@ def test_save_prefix_to_yaml(tmp_path):
 
 def test_save_version_pattern_to_yaml(tmp_path):
     config_file = tmp_path / "components.yaml"
-    config = components.Config(components_yaml_file=config_file)
+    config = config_yaml.Config(components_yaml_file=config_file)
     config.add(components.factory.get(**comp["logspout"]))
     config.components[0].version_pattern = "{version}:{version}"
     config.save_to_yaml()
@@ -126,7 +126,7 @@ def test_save_version_pattern_to_yaml(tmp_path):
 
 def test_exlude_versions_to_yaml(tmp_path):
     config_file = tmp_path / "components.yaml"
-    config = components.Config(components_yaml_file=config_file)
+    config = config_yaml.Config(components_yaml_file=config_file)
     config.add(components.factory.get(**comp["logspout"]))
     config.components[0].exclude_versions = ["v3.2.6"]
     config.save_to_yaml()
@@ -137,7 +137,7 @@ def test_exlude_versions_to_yaml(tmp_path):
 
 def test_save_files_to_yaml(tmp_path):
     config_file = tmp_path / "components.yaml"
-    config = components.Config(components_yaml_file=config_file)
+    config = config_yaml.Config(components_yaml_file=config_file)
     config.add(components.factory.get(**comp["logspout"]))
     config.components[0].files = ["file1", "file2"]
     config.save_to_yaml()
@@ -148,7 +148,7 @@ def test_save_files_to_yaml(tmp_path):
 
 def test_use_filter_for_component_to_yaml(tmp_path):
     config_file = tmp_path / "components.yaml"
-    config = components.Config(components_yaml_file=config_file)
+    config = config_yaml.Config(components_yaml_file=config_file)
     config.add(components.factory.get(**comp["logspout"]))
     config.components[0].prefix = "v"
     config.components[0].filter = "/^v\d+\.\d+\.\d+$/"
@@ -158,7 +158,7 @@ def test_use_filter_for_component_to_yaml(tmp_path):
 
 def test_components_list_write_read_yaml_file(tmp_path):
     config_file = tmp_path / "components.yaml"
-    config = components.Config(components_yaml_file=config_file)
+    config = config_yaml.Config(components_yaml_file=config_file)
     config.add(components.factory.get(**comp["glances"]))
     config.add(components.factory.get(**comp["logspout"]))
     dict1 = config.components_to_dict()
@@ -169,7 +169,7 @@ def test_components_list_write_read_yaml_file(tmp_path):
 
 
 def test_components_to_dict(tmp_path):
-    config = components.Config(tmp_path / "components.yaml")
+    config = config_yaml.Config(tmp_path / "components.yaml")
     config.add(components.factory.get(**comp["glances"]))
     config.add(components.factory.get(**comp["logspout"]))
     config.add(components.factory.get(**comp["Django"]))

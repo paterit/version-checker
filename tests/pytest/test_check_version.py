@@ -2,8 +2,8 @@ import pprint
 from pathlib import Path
 import tempfile
 import shutil
-from updater import components
-from check_version import update, check, cli
+from updater import config_yaml
+from check_version import cli
 import pytest
 from click.testing import CliRunner
 
@@ -16,7 +16,7 @@ FIXTURE_DIR = Path(".").absolute() / "tests/test_files"
 def config_from_copy_of_test_dir_broken():
     test_dir = Path(tempfile.TemporaryDirectory().name)
     shutil.copytree(FIXTURE_DIR, test_dir)
-    config = components.Config(test_dir / "components.yaml")
+    config = config_yaml.Config(test_dir / "components.yaml")
     config.git_commit = False
     config.read_from_yaml()
     # remove expected file
@@ -27,7 +27,7 @@ def config_from_copy_of_test_dir_broken():
 def config_from_copy_of_test_dir():
     test_dir = Path(tempfile.TemporaryDirectory().name)
     shutil.copytree(FIXTURE_DIR, test_dir)
-    config = components.Config(test_dir / "components.yaml")
+    config = config_yaml.Config(test_dir / "components.yaml")
     config.git_commit = False
     config.read_from_yaml()
     return config

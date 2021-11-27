@@ -74,7 +74,7 @@ pipenv-install:
 
 package-dist: clean-package-dist
 	pipenv run python setup.py sdist bdist_wheel
-	pipenv run python -m twine upload dist/*
+	pipenv run python -m twine --repository UPDATER upload dist/*
 	git tag -f -a `cat updater/VERSION` -m "New relase `cat updater/VERSION`"
 	git push origin --tags
 	make clean-package-dist
