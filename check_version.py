@@ -205,13 +205,8 @@ def update(ctx, test_command, test_dir, git_commit, project_dir, verbose):
     type=click.Path(exists=True),
     help="Requirements.txt file from which packages and versions will be added to components.yaml file.",
 )
-@click.option(
-    "--verbose",
-    is_flag=True,
-    help="Print at the end detailed info for each component about update process.",
-)
 @click.pass_context
-def import_req(ctx, source, requirements_file, verbose):
+def import_req(ctx, source, requirements_file):
     """Imports python packages from requirements.txt file."""
     config = ctx.obj["config"]
     dry_run = ctx.obj["dry_run"]
@@ -219,7 +214,7 @@ def import_req(ctx, source, requirements_file, verbose):
     print_yaml = ctx.obj["print_yaml"]
 
     config.read_from_yaml()
-    config.add_requirements_from_pipfile(requirements_file)
+    config.add_from_requirements(requirements_file, source)
     config.save_config(destination_file, dry_run, print_yaml)
 
 

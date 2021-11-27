@@ -125,7 +125,7 @@ class Config:
                 "version-pattern", comp.DEFAULT_VERSION_PATTERN
             )
 
-    def add_requirements_from_pipfile(self, req_file=None):
+    def add_from_requirements(self, req_file=None, req_source=None):
         file_to_read = Path(req_file or self.project_dir / "./requirements.txt")
         assert (
             file_to_read.is_file()
@@ -151,8 +151,12 @@ class Config:
                         )
                     )
                     comp = self.components[-1]
-                    comp.files = ["Pipfile"]
-                    comp.version_pattern = '{component} = "=={version}"'
+                    if req_source == "pipfile":
+                        comp.version_pattern = '{component} = "=={version}"'
+                        comp.files = ["Pipfile"]
+                    elif req_source == "requirements":
+                        comp.version_pattern = "{component}=={version}"
+                        comp.files = ["requirements.txt"]
                     comp.filter = "/^" + (version.count(".")) * "\\d+\\." + "\\d+$/"
 
     def count_components_to_update(self):

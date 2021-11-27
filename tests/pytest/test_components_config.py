@@ -337,8 +337,19 @@ def test_get_versions_info():
 
 def test_add_requirements_from_pipfile():
     config = config_from_copy_of_test_dir()
-    config.add_requirements_from_pipfile()
-    # pp.pprint(config.components)
+    config.add_from_requirements(
+        config.config_file.parent / "requirements.txt", "pipfile"
+    )
+    assert any(x.component_name == "behave" for x in config.components)
+    assert any(x.component_name == "cachier" for x in config.components)
+    assert not any(x.component_name == "xwrong" for x in config.components)
+
+
+def test_add_requirements_from_requirements_txt():
+    config = config_from_copy_of_test_dir()
+    config.add_from_requirements(
+        config.config_file.parent / "requirements.txt", "requirements"
+    )
     assert any(x.component_name == "behave" for x in config.components)
     assert any(x.component_name == "cachier" for x in config.components)
     assert not any(x.component_name == "xwrong" for x in config.components)

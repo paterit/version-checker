@@ -60,10 +60,7 @@ def test_update_fail():
 
     with local.cwd(config.project_dir):
 
-        result = runner.invoke(
-            cli,
-            ["--print", "update", "--verbose"],
-        )
+        result = runner.invoke(cli, ["--print", "update", "--verbose"])
         assert result.exit_code == 2
 
 
@@ -73,10 +70,7 @@ def test_update():
     runner = CliRunner()
 
     with local.cwd(config.config_file.parent):
-        result = runner.invoke(
-            cli,
-            ["--print", "update", "--verbose"],
-        )
+        result = runner.invoke(cli, ["--print", "update", "--verbose"])
         assert result.exit_code == 0
         assert "next-version" in result.output
 
@@ -105,11 +99,5 @@ def test_import_req():
 def test_check_clear_cache():
     runner = CliRunner()
     with runner.isolated_filesystem():
-        result = runner.invoke(
-            cli,
-            [
-                "check",
-                "--clear-cache",
-            ],
-        )
+        result = runner.invoke(cli, ["check", "--clear-cache"])
         assert result.exit_code == 0
