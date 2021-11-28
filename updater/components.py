@@ -1,53 +1,61 @@
 import datetime
-from abc import ABC, abstractmethod
+from abc import ABCMeta, abstractmethod
 from pathlib import Path
+from typing import Dict, List, Optional, Union
 
 import requests
-from cachier import cachier
+from cachier import cachier  # type: ignore
 from loguru import logger
-from packaging.version import parse
-from rex import rex
+from packaging.version import LegacyVersion, Version, parse
+from requests.models import Response
+from rex import rex  # type: ignore
+
+TVer = Union[LegacyVersion, Version]
+TVerList = List[TVer]
+TFileNameList = List[str]
+TDictComponent = Dict[str, Union[Optional[str], TVer, TFileNameList, List[TVer]]]
 
 
-class Component(ABC):
+class Component(metaclass=ABCMeta):
 
-    DEFAULT_PREFIX = None
-    DEFAULT_FILTER = "/.*/"
-    DEFAULT_FILES = None
-    DEFAULT_EXLUDE_VERSIONS = []
-    DEFAULT_REPO = None
-    LATEST_TAGS = ["latest"]
-    DEFAULT_VERSION_PATTERN = "{version}"
+    DEFAULT_PREFIX: Optional[str] = None
+    DEFAULT_FILTER: str = "/.*/"
+    DEFAULT_FILES: TFileNameList = []
+    DEFAULT_EXLUDE_VERSIONS: List[TVer] = []
+    DEFAULT_REPO: Optional[str] = None
+    LATEST_TAGS: List[str] = ["latest"]
+    DEFAULT_VERSION_PATTERN: str = "{version}"
 
-    def __init__(self, component_name, current_version_tag):
-        self.component_type = None
-        self.component_name = component_name
-        self.current_version_tag = current_version_tag
-        self.current_version = parse(current_version_tag)
-        self.version_tags = []
-        self.next_version = self.current_version
-        self.next_version_tag = self.current_version_tag
-        self.prefix = self.DEFAULT_PREFIX
-        self.filter = self.DEFAULT_FILTER
-        self.files = self.DEFAULT_FILES
-        self.exclude_versions = self.DEFAULT_EXLUDE_VERSIONS
+    def __init__(self, component_name: str, current_version_tag: str) -> None:
+        self.component_type: Optional[str] = None
+        self.component_name: str = component_name
+        self.current_version_tag: str = current_version_tag
+        self.current_version: TVer = parse(current_version_tag)
+        self.version_tags: List[str] = []
+        self.next_version: TVer = self.current_version
+        self.next_version_tag: str = self.current_version_tag
+        self.prefix: Optional[str] = self.DEFAULT_PREFIX
+        self.filter: str = self.DEFAULT_FILTER
+        self.files: TFileNameList = self.DEFAULT_FILES
+        self.exclude_versions: List[TVer] = self.DEFAULT_EXLUDE_VERSIONS
         self.version_pattern = self.DEFAULT_VERSION_PATTERN
         super().__init__()
 
-    def newer_version_exists(self):
+    def newer_version_exists(self) -> bool:
         if self.current_version_tag in self.LATEST_TAGS:
             return False
         else:
             return self.next_version > self.current_version
 
     @abstractmethod
-    def fetch_versions():
+    def fetch_versions_tags(self) -> List[str]:
         """should return a list of versions eg.: ('1.0.1', '2.0.2')"""
+        pass
 
     # TODO move max statement after self.next_version= to new mehtod: get_max_version_number()
-    def check(self):
+    def check(self) -> bool:
         if self.current_version_tag not in self.LATEST_TAGS:
-            self.version_tags = self.fetch_versions()
+            self.version_tags = self.fetch_versions_tags()
 
             self.next_version = max(
                 [
@@ -60,8 +68,8 @@ class Component(ABC):
 
         return self.newer_version_exists()
 
-    def to_dict(self):
-        ret = {
+    def to_dict(self) -> TDictComponent:
+        ret: TDictComponent = {
             "component-type": self.component_type,
             "current-version": self.current_version_tag,
             "next-version": self.next_version_tag,
@@ -79,25 +87,25 @@ class Component(ABC):
             ret["version-pattern"] = self.version_pattern
         return ret
 
-    def name_version_tag(self, version_tag):
-        d = {"version": version_tag, "component": self.component_name}
+    def name_version_tag(self, version_tag: str) -> str:
+        d: Dict[str, str] = {"version": version_tag, "component": self.component_name}
         return self.version_pattern.format(**d)
 
-    def count_occurence(self, string_to_search):
+    def count_occurence(self, string_to_search: str) -> int:
         return string_to_search.count(self.name_version_tag(self.current_version_tag))
 
-    def replace(self, string_to_replace):
+    def replace(self, string_to_replace: str) -> str:
         return string_to_replace.replace(
             self.name_version_tag(self.current_version_tag),
             self.name_version_tag(self.next_version_tag),
         )
 
-    def update_files(self, base_dir, dry_run=False):
-        counter = 0
+    def update_files(self, base_dir: str, dry_run: bool = False) -> int:
+        counter: int = 0
 
         for file_name in self.files:
-            file = Path(Path(base_dir) / file_name)
-            orig_content = file.read_text()
+            file: Path = Path(Path(base_dir) / file_name)
+            orig_content: str = file.read_text()
             if self.count_occurence(orig_content) > 1:
                 logger.error(
                     f"Too many versions of {self.current_version_tag} occurence in {orig_content}!"
@@ -107,14 +115,14 @@ class Component(ABC):
                 )
 
             if not dry_run:
-                new_content = self.replace(orig_content)
+                new_content: str = self.replace(orig_content)
                 if new_content == orig_content:
                     logger.error(
                         (
                             f"Error in version replacment for {self.component_name}: "
                             f"no replacement done for current_version"
                             f": {self.name_version_tag(self.current_version_tag)} "
-                            f"and next_version: {self.name_version_tag(self.name_version_tag)} "
+                            f"and next_version: {self.name_version_tag(self.next_version_tag)} "
                             f"in file: {str(file)}"
                         )
                     )
@@ -126,31 +134,28 @@ class Component(ABC):
         return counter
 
 
-# TODO mark as deprecated
-def clear_docker_images_cache():
-    clear_versions_cache()
-
-
-def clear_versions_cache():
-    fetch_docker_images_versions.clear_cache()
-    fetch_pypi_versions.clear_cache()
+def clear_versions_cache() -> None:
+    fetch_docker_images_versions.clear_cache()  # type: ignore
+    fetch_pypi_versions.clear_cache()  # type: ignore
 
 
 @cachier(stale_after=datetime.timedelta(days=3))
-def fetch_docker_images_versions(repo_name, component_name, token_url=None):
+def fetch_docker_images_versions(
+    repo_name: str, component_name: str, token_url: Optional[str] = None
+) -> List[str]:
     logger.info(f"{repo_name}:{component_name} - NOT CACHED")
-    payload = {
+    payload: Dict[str, str] = {
         "service": "registry.docker.io",
         "scope": f"repository:{repo_name}/{component_name}:pull",
     }
-    token_url = token_url or DockerImageComponent.TOKEN_URL
-    r = requests.get(token_url, params=payload)
+    r: Response = requests.get(
+        token_url or DockerImageComponent.TOKEN_URL, params=payload
+    )
     if not r.status_code == 200:
         print(f"Error status {r.status_code}")
         raise Exception("Could not get auth token")
 
-    j = r.json()
-    token = j["token"]
+    token: str = r.json()["token"]
     h = {"Authorization": f"Bearer {token}"}
     r = requests.get(
         f"https://index.docker.io/v2/{repo_name}/{component_name}/tags/list", headers=h
@@ -159,8 +164,8 @@ def fetch_docker_images_versions(repo_name, component_name, token_url=None):
 
 
 @cachier(stale_after=datetime.timedelta(days=3))
-def fetch_pypi_versions(component_name):
-    r = requests.get(f"https://pypi.org/pypi/{component_name}/json")
+def fetch_pypi_versions(component_name: str) -> List[str]:
+    r: Response = requests.get(f"https://pypi.org/pypi/{component_name}/json")
     # it returns 404 if there is no such a package
     if not r.status_code == 200:
         return list()
@@ -170,39 +175,43 @@ def fetch_pypi_versions(component_name):
 
 class DockerImageComponent(Component):
 
-    DEFAULT_VERSION_PATTERN = "{component}:{version}"
-    TOKEN_URL = "https://auth.docker.io/token"
+    DEFAULT_VERSION_PATTERN: str = "{component}:{version}"
+    TOKEN_URL: str = "https://auth.docker.io/token"
 
-    def __init__(self, repo_name, component_name, current_version_tag):
+    def __init__(
+        self, repo_name: str, component_name: str, current_version_tag: str
+    ) -> None:
         super(DockerImageComponent, self).__init__(component_name, current_version_tag)
         self.repo_name = repo_name
         self.component_type = "docker-image"
         self.version_pattern = self.DEFAULT_VERSION_PATTERN
 
-    def fetch_versions(self):
+    def fetch_versions_tags(self) -> List[str]:
         return fetch_docker_images_versions(self.repo_name, self.component_name)
 
-    def to_dict(self):
-        ret = super(DockerImageComponent, self).to_dict()
+    def to_dict(self) -> TDictComponent:
+        ret: TDictComponent = super(DockerImageComponent, self).to_dict()
         ret["docker-repo"] = self.repo_name
         return ret
 
 
 class PypiComponent(Component):
 
-    DEFAULT_VERSION_PATTERN = "{component}=={version}"
+    DEFAULT_VERSION_PATTERN: str = "{component}=={version}"
 
-    def __init__(self, component_name, current_version_tag, **_ignored):
+    def __init__(
+        self, component_name: str, current_version_tag: str, **_ignored: str
+    ) -> None:
         super(PypiComponent, self).__init__(component_name, current_version_tag)
         self.component_type = "pypi"
         self.version_pattern = self.DEFAULT_VERSION_PATTERN
 
-    def fetch_versions(self):
+    def fetch_versions_tags(self) -> List[str]:
         return fetch_pypi_versions(self.component_name)
 
 
 class ComponentFactory:
-    def get(self, component_type, **args):
+    def get(self, component_type: str, **args: str) -> Component:
         if component_type == "docker-image":
             return DockerImageComponent(**args)
         elif component_type == "pypi":

@@ -171,7 +171,6 @@ def test_clear_versions_cache():
     check_pypi_versions("Django", "2.1.2")
     check_docker_images_versions("gliderlabs", "logspout", "v3.1")
     components.clear_versions_cache()
-    components.clear_docker_images_cache()
     check_pypi_versions("Django", "2.1.2")
     check_docker_images_versions("gliderlabs", "logspout", "v3.1")
     assert True

@@ -96,6 +96,7 @@ def test_import_req():
 
 
 @pytest.mark.check_version
+@pytest.mark.slow
 def test_check_clear_cache():
     runner = CliRunner()
     with runner.isolated_filesystem():

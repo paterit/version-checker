@@ -19,6 +19,8 @@ radon = "*"
 coverage = "*"
 wheel = "*"
 flynt = "*"
+mypy = "*"
+types-requests = "*"
 
 [packages]
 loguru = "==0.5.3"
