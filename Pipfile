@@ -23,6 +23,8 @@ mypy = "*"
 types-requests = "*"
 types-setuptools = "*"
 types-pyyaml = "*"
+types-click = "*"
+pytype = "*"
 
 [packages]
 loguru = "==0.5.3"

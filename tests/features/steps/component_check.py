@@ -1,5 +1,5 @@
-from behave import *
-from plumbum import local
+from behave import given, when, then  # type: ignore
+from plumbum import local  # type: ignore
 from updater import plumbum_msg
 
 RET_CODE_SUCCESS = 0
@@ -15,7 +15,7 @@ def step_impl(context, component_type, repo_name, component_name, version):
     context.component_check["version"] = version
 
 
-@when("check version script is run")
+@when("check version script is run")  # type: ignore[misc]
 def step_impl(context):
     python = local["python"]
     ret = python[

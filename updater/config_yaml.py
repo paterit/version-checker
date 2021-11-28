@@ -3,16 +3,16 @@ import datetime
 from pathlib import Path
 import pprint
 from subprocess import run
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 import pkg_resources
 
 
-import click  # type: ignore
+import click
 import yaml
 from loguru import logger
 from plumbum import local  # type: ignore
 
-from updater import git_check, plumbum_msg, components
+from updater import TPlumbumRunReturn, git_check, plumbum_msg, components
 
 
 class Config:
@@ -48,20 +48,20 @@ class Config:
             message = step
         comp[str(datetime.datetime.now())] = message
 
-    def get_status(self):
+    def get_status(self) -> str:
         return pprint.pformat(self.status, indent=4)
 
-    def add(self, component: components.Component):
+    def add(self, component: components.Component) -> int:
         self.components.append(component)
         return self.components.index(self.components[-1])
 
-    def components_to_dict(self):
+    def components_to_dict(self) -> Dict[str, components.TDictComponent]:
         return {
             component.component_name: component.to_dict()
             for component in self.components
         }
 
-    def save_to_yaml(self, file: Optional[str] = None):
+    def save_to_yaml(self, file: Optional[str] = None) -> None:
         path = file or self.config_file
         if path:
             file_to_save: Path = Path(path)
@@ -79,7 +79,7 @@ class Config:
         destination_file: Optional[str] = None,
         dry_run: bool = False,
         print_yaml: bool = False,
-    ):
+    ) -> None:
         if not dry_run:
             if destination_file:
                 self.save_to_yaml(destination_file)
@@ -89,7 +89,7 @@ class Config:
         if print_yaml:
             click.echo(pprint.pformat(yaml.dump(self.components_to_dict()), indent=4))
 
-    def read_from_yaml(self, file: Optional[Path] = None):
+    def read_from_yaml(self, file: Optional[Path] = None) -> None:
         read_file = file or self.config_file
         self.components = []
 
@@ -122,7 +122,7 @@ class Config:
 
     def add_from_requirements(
         self, req_file: Optional[str] = None, req_source: Optional[str] = None
-    ):
+    ) -> None:
 
         path = (
             req_file or self.project_dir / "requirements.txt"
@@ -174,10 +174,10 @@ class Config:
             [1 for component in self.components if component.newer_version_exists()]
         )
 
-    def check(self):
+    def check(self) -> List[Tuple[str, bool]]:
         return [(comp.component_name, comp.check()) for comp in self.components]
 
-    def run_tests(self, processed_component: components.Component):
+    def run_tests(self, processed_component: components.Component) -> None:
         assert self.test_command, "No test command provided."
         ret = run(self.test_command, cwd=(self.test_dir or self.project_dir))
         assert (
@@ -190,11 +190,13 @@ class Config:
         from_version: str,
         to_version: str,
         dry_run: bool,
-    ):
+    ) -> None:
         git = local["git"]
         assert self.config_file, "No config file found."
         with local.cwd(self.config_file.parent):
-            ret = git_check(git["diff", "--name-only"].run(retcode=None))
+            ret: TPlumbumRunReturn = git_check(
+                git["diff", "--name-only"].run(retcode=None)
+            )
             changed_files: List[str] = ret[1].splitlines()
             assert set(component.files).issubset(
                 set(changed_files)
@@ -212,7 +214,7 @@ class Config:
                 )
 
     # TODO move code for updating single component outside to new methods
-    def update_files(self, dry_run: bool = False):
+    def update_files(self, dry_run: bool = False) -> int:
         counter = 0
         for component in self.components:
             if component.newer_version_exists():
@@ -244,7 +246,7 @@ class Config:
 
         return counter
 
-    def get_versions_info(self):
+    def get_versions_info(self) -> List[str]:
         new = [
             (
                 f"{c.component_name} - current: {c.current_version_tag} "

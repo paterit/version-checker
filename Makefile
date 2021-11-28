@@ -123,3 +123,6 @@ cov:
 cov-all:
 	pipenv run python -m coverage run --source=. --omit="*/.venv/*,*/tests/*,setup.py" -m pytest --disable-warnings -vv -x 
 	pipenv run python -m coverage report -m
+
+mypy:
+	pipenv run python -m mypy --strict --show-error-codes check_version.py

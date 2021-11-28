@@ -1,11 +1,12 @@
+from packaging.version import Version
 from updater import components, config_yaml, plumbum_msg, git_check
 from pathlib import Path
-from rex import rex
+from rex import rex  # type: ignore
 import tempfile
 import shutil
 import pytest
 import os
-from plumbum import local
+from plumbum import local  # type: ignore
 import pprint
 
 pp = pprint.PrettyPrinter(indent=4)
@@ -42,7 +43,7 @@ comp = {
 }
 
 
-def config_from_copy_of_test_dir():
+def config_from_copy_of_test_dir() -> config_yaml.Config:
     test_dir = Path(tempfile.TemporaryDirectory().name)
     shutil.copytree(FIXTURE_DIR, test_dir)
     config = config_yaml.Config(test_dir / "components.yaml")
@@ -51,11 +52,13 @@ def config_from_copy_of_test_dir():
     return config
 
 
-def config_from_copy_of_test_dir_with_dir_param():
+def config_from_copy_of_test_dir_with_dir_param() -> config_yaml.Config:
     test_dir = Path(tempfile.TemporaryDirectory().name)
     shutil.copytree(FIXTURE_DIR, test_dir)
     os.makedirs(test_dir / "conf")
-    shutil.move(test_dir / "components.yaml", test_dir / "conf/components_new.yaml")
+    shutil.move(
+        str(test_dir / "components.yaml"), test_dir / "conf/components_new.yaml"
+    )
     config = config_yaml.Config(test_dir / "conf/components_new.yaml")
     config.project_dir = test_dir
     config.git_commit = False
@@ -88,7 +91,7 @@ def test_load_config_without_yaml_file():
     assert config.count_components_to_update() == 1
 
 
-def test_save_next_version_to_yaml(tmp_path):
+def test_save_next_version_to_yaml(tmp_path: Path):
     config_file = tmp_path / "components.yaml"
     config = config_yaml.Config(components_yaml_file=config_file)
     config.add(components.factory.get(**comp["logspout"]))
@@ -100,7 +103,7 @@ def test_save_next_version_to_yaml(tmp_path):
     assert file_content.count("next-version:") == 2
 
 
-def test_save_prefix_to_yaml(tmp_path):
+def test_save_prefix_to_yaml(tmp_path: Path):
     config_file = tmp_path / "components.yaml"
     config = config_yaml.Config(components_yaml_file=config_file)
     config.add(components.factory.get(**comp["logspout"]))
@@ -110,7 +113,7 @@ def test_save_prefix_to_yaml(tmp_path):
     assert "version_prefix" in file_content
 
 
-def test_save_version_pattern_to_yaml(tmp_path):
+def test_save_version_pattern_to_yaml(tmp_path: Path):
     config_file = tmp_path / "components.yaml"
     config = config_yaml.Config(components_yaml_file=config_file)
     config.add(components.factory.get(**comp["logspout"]))
@@ -124,7 +127,7 @@ def test_save_version_pattern_to_yaml(tmp_path):
     assert "version-pattern" not in file_content
 
 
-def test_exlude_versions_to_yaml(tmp_path):
+def test_exlude_versions_to_yaml(tmp_path: Path):
     config_file = tmp_path / "components.yaml"
     config = config_yaml.Config(components_yaml_file=config_file)
     config.add(components.factory.get(**comp["logspout"]))
@@ -135,7 +138,7 @@ def test_exlude_versions_to_yaml(tmp_path):
     assert "v3.2.6" in file_content
 
 
-def test_save_files_to_yaml(tmp_path):
+def test_save_files_to_yaml(tmp_path: Path):
     config_file = tmp_path / "components.yaml"
     config = config_yaml.Config(components_yaml_file=config_file)
     config.add(components.factory.get(**comp["logspout"]))
@@ -146,7 +149,7 @@ def test_save_files_to_yaml(tmp_path):
     assert "file2" in file_content
 
 
-def test_use_filter_for_component_to_yaml(tmp_path):
+def test_use_filter_for_component_to_yaml(tmp_path: Path):
     config_file = tmp_path / "components.yaml"
     config = config_yaml.Config(components_yaml_file=config_file)
     config.add(components.factory.get(**comp["logspout"]))
@@ -156,7 +159,7 @@ def test_use_filter_for_component_to_yaml(tmp_path):
     assert config.components[0].next_version_tag == rex(config.components[0].filter)
 
 
-def test_components_list_write_read_yaml_file(tmp_path):
+def test_components_list_write_read_yaml_file(tmp_path: Path):
     config_file = tmp_path / "components.yaml"
     config = config_yaml.Config(components_yaml_file=config_file)
     config.add(components.factory.get(**comp["glances"]))
@@ -168,7 +171,7 @@ def test_components_list_write_read_yaml_file(tmp_path):
     assert dict1 == dict2
 
 
-def test_components_to_dict(tmp_path):
+def test_components_to_dict(tmp_path: Path):
     config = config_yaml.Config(tmp_path / "components.yaml")
     config.add(components.factory.get(**comp["glances"]))
     config.add(components.factory.get(**comp["logspout"]))
@@ -209,18 +212,21 @@ def test_update_components_files():
 
 def test_save_config_dry_run():
     config = config_from_copy_of_test_dir()
-    content1 = config.config_file.read_text()
+    content1 = config.config_file.read_text() if config.config_file else None
     config.save_config(destination_file=None, dry_run=True, print_yaml=False)
-    content2 = config.config_file.read_text()
+    content2 = config.config_file.read_text() if config.config_file else None
+    assert content1 == content2
     assert content1 == content2
 
 
-def test_save_config_in_different_location(tmp_path):
+def test_save_config_in_different_location(tmp_path: Path):
     config_file = tmp_path / "components2.yaml"
     config = config_from_copy_of_test_dir()
     config.save_config(destination_file=None, dry_run=False, print_yaml=False)
-    config.save_config(destination_file=config_file, dry_run=False, print_yaml=False)
-    content1 = config.config_file.read_text()
+    config.save_config(
+        destination_file=str(config_file), dry_run=False, print_yaml=False
+    )
+    content1 = config.config_file.read_text() if config.config_file else None
     content2 = config_file.read_text()
     assert content1 == content2
 
@@ -239,12 +245,24 @@ def test_dry_run_update_file():
 
     assert c0.current_version != c0.next_version
     assert c1.current_version != c1.next_version
-    content1 = config.config_file.parent.joinpath(c0.files[0]).read_text()
+    content1 = (
+        config.config_file.parent.joinpath(c0.files[0]).read_text()
+        if config.config_file
+        else None
+    )
     config.update_files(dry_run=True)
-    content2 = config.config_file.parent.joinpath(c0.files[0]).read_text()
+    content2 = (
+        config.config_file.parent.joinpath(c0.files[0]).read_text()
+        if config.config_file
+        else None
+    )
     assert content1 == content2
     config.update_files(dry_run=False)
-    content2 = config.config_file.parent.joinpath(c0.files[0]).read_text()
+    content2 = (
+        config.config_file.parent.joinpath(c0.files[0]).read_text()
+        if config.config_file
+        else None
+    )
     assert content1 != content2
 
 
@@ -252,7 +270,11 @@ def test_exclude_versions_param():
     config = config_from_copy_of_test_dir()
     config.check()
     config.save_config()
-    assert "next-version: v3.2.6" not in config.config_file.read_text()
+    assert (
+        "next-version: v3.2.6" not in config.config_file.read_text()
+        if config.config_file
+        else None
+    )
 
 
 def test_update_components_files_with_testing_positive(capfd):
@@ -306,6 +328,7 @@ def test_commit_changes():
     config = config_from_copy_of_test_dir()
     config.git_commit = True
     git = local["git"]
+    assert config.config_file
     with local.cwd(config.config_file.parent):
         ret = git_check(git["init"].run(retcode=None))
         ret = git_check(
@@ -337,9 +360,10 @@ def test_get_versions_info():
 
 def test_add_requirements_from_pipfile():
     config = config_from_copy_of_test_dir()
-    config.add_from_requirements(
-        config.config_file.parent / "requirements.txt", "pipfile"
-    )
+    if config.config_file:
+        config.add_from_requirements(
+            str(config.config_file.parent / "requirements.txt"), "pipfile"
+        )
     assert any(x.component_name == "behave" for x in config.components)
     assert any(x.component_name == "cachier" for x in config.components)
     assert not any(x.component_name == "xwrong" for x in config.components)
@@ -347,9 +371,10 @@ def test_add_requirements_from_pipfile():
 
 def test_add_requirements_from_requirements_txt():
     config = config_from_copy_of_test_dir()
-    config.add_from_requirements(
-        config.config_file.parent / "requirements.txt", "requirements"
-    )
+    if config.config_file:
+        config.add_from_requirements(
+            str(config.config_file.parent / "requirements.txt"), "requirements"
+        )
     assert any(x.component_name == "behave" for x in config.components)
     assert any(x.component_name == "cachier" for x in config.components)
     assert not any(x.component_name == "xwrong" for x in config.components)

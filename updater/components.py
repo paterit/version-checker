@@ -21,7 +21,7 @@ class Component(metaclass=ABCMeta):
     DEFAULT_PREFIX: Optional[str] = None
     DEFAULT_FILTER: str = "/.*/"
     DEFAULT_FILES: TFileNameList = []
-    DEFAULT_EXLUDE_VERSIONS: List[TVer] = []
+    DEFAULT_EXLUDE_VERSIONS: List[str] = []
     DEFAULT_REPO: Optional[str] = None
     LATEST_TAGS: List[str] = ["latest"]
     DEFAULT_VERSION_PATTERN: str = "{version}"
@@ -37,7 +37,7 @@ class Component(metaclass=ABCMeta):
         self.prefix: Optional[str] = self.DEFAULT_PREFIX
         self.filter: str = self.DEFAULT_FILTER
         self.files: TFileNameList = self.DEFAULT_FILES
-        self.exclude_versions: List[TVer] = self.DEFAULT_EXLUDE_VERSIONS
+        self.exclude_versions: List[str] = self.DEFAULT_EXLUDE_VERSIONS
         self.version_pattern = self.DEFAULT_VERSION_PATTERN
         super().__init__()
 
@@ -140,7 +140,7 @@ def clear_versions_cache() -> None:
     fetch_pypi_versions.clear_cache()  # type: ignore
 
 
-@cachier(stale_after=datetime.timedelta(days=3))
+@cachier(stale_after=datetime.timedelta(days=3))  # type: ignore[misc]
 def fetch_docker_images_versions(
     repo_name: str, component_name: str, token_url: Optional[str] = None
 ) -> List[str]:
@@ -161,10 +161,11 @@ def fetch_docker_images_versions(
     r = requests.get(
         f"https://index.docker.io/v2/{repo_name}/{component_name}/tags/list", headers=h
     )
-    return r.json().get("tags", [])
+    ret: List[str] = r.json().get("tags", [])
+    return ret
 
 
-@cachier(stale_after=datetime.timedelta(days=3))
+@cachier(stale_after=datetime.timedelta(days=3))  # type: ignore[misc]
 def fetch_pypi_versions(component_name: str) -> List[str]:
     r: Response = requests.get(f"https://pypi.org/pypi/{component_name}/json")
     # it returns 404 if there is no such a package
