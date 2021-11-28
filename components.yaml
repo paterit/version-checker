@@ -16,11 +16,11 @@ behave:
   version-pattern: '{component} = "=={version}"'
 cachier:
   component-type: pypi
-  current-version: 1.5.3
+  current-version: 1.5.4
   files:
   - Pipfile
   filter: /^\d+\.\d+\.\d+$/
-  next-version: 1.5.3
+  next-version: 1.5.4
   version-pattern: '{component} = "=={version}"'
 click:
   component-type: pypi
