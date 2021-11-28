@@ -174,7 +174,7 @@ def update(ctx, test_command, test_dir, git_commit, project_dir, verbose):
     config.test_command = test_command.split() if test_command is not None else None
     config.test_dir = test_dir
     config.git_commit = git_commit
-    config.project_dir = project_dir or config.project_dir
+    config.project_dir = Path(project_dir or config.project_dir)
     config.read_from_yaml()
     config.check()
     config.save_config(destination_file, dry_run, print_yaml)

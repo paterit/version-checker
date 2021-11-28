@@ -3,13 +3,14 @@ import datetime
 from pathlib import Path
 import pprint
 from subprocess import run
+from typing import Any, Dict, List, Optional
 import pkg_resources
 
 
-import click
+import click  # type: ignore
 import yaml
 from loguru import logger
-from plumbum import local
+from plumbum import local  # type: ignore
 
 from updater import git_check, plumbum_msg, components
 
@@ -24,23 +25,18 @@ class Config:
     STATE_UPDATE_SKIPPED = "UPDATE_SKIPPED"
     STATE_UPDATE_DONE = "UPDATE_DONE"
 
-    def __init__(self, components_yaml_file=None):
-        self.components = []
+    def __init__(self, components_yaml_file: Optional[Path] = None) -> None:
+        self.components: List[components.Component] = []
         self.config_file = components_yaml_file
-        if self.config_file:
-            if not self.config_file.is_file():
-                logger.error(
-                    f"Config file {self.config_file} exists but it is not file."
-                )
-            self.project_dir = self.config_file.parent
-        else:
-            self.project_dir = None
-        self.test_command = None
-        self.test_dir = None
-        self.git_commit = True
-        self.status = {}
+        self.project_dir: Optional[
+            Path
+        ] = self.config_file.parent if self.config_file else None
+        self.test_command: Optional[List[str]] = None
+        self.test_dir: Optional[Path] = None
+        self.git_commit: bool = True
+        self.status: Dict[str, Dict[str, str]] = {}
 
-    def update_status(self, component, step):
+    def update_status(self, component: components.Component, step: str) -> None:
         if component.component_name not in self.status:
             self.status[component.component_name] = {}
         comp = self.status[component.component_name]
@@ -55,7 +51,7 @@ class Config:
     def get_status(self):
         return pprint.pformat(self.status, indent=4)
 
-    def add(self, component):
+    def add(self, component: components.Component):
         self.components.append(component)
         return self.components.index(self.components[-1])
 
@@ -65,11 +61,25 @@ class Config:
             for component in self.components
         }
 
-    def save_to_yaml(self, file=None):
-        file_to_save = Path(file) if file is not None else self.config_file
-        yaml.dump(self.components_to_dict(), open(file_to_save, "w"))
+    def save_to_yaml(self, file: Optional[str] = None):
+        path = file or self.config_file
+        if path:
+            file_to_save: Path = Path(path)
+            yaml.dump(self.components_to_dict(), open(file_to_save, "w"))
+        else:
+            logger.error(
+                f"No config file provided and no config file found in project directory."
+            )
+            raise FileNotFoundError(
+                "No config file provided and no config file found in project directory."
+            )
 
-    def save_config(self, destination_file=None, dry_run=False, print_yaml=False):
+    def save_config(
+        self,
+        destination_file: Optional[str] = None,
+        dry_run: bool = False,
+        print_yaml: bool = False,
+    ):
         if not dry_run:
             if destination_file:
                 self.save_to_yaml(destination_file)
@@ -79,27 +89,27 @@ class Config:
         if print_yaml:
             click.echo(pprint.pformat(yaml.dump(self.components_to_dict()), indent=4))
 
-    def read_from_yaml(self, file=None):
+    def read_from_yaml(self, file: Optional[Path] = None):
         read_file = file or self.config_file
         self.components = []
 
-        components_dict = (
+        components_dict: Dict[str, Any] = (
             yaml.safe_load(open(read_file)) if read_file and read_file.is_file() else {}
         ) or {}
 
         for component_name in components_dict:
             compd = components_dict[component_name]
-            params = {
-                "component_type": compd["component-type"],
+            params: components.TDictComponent = {
                 "component_name": component_name,
                 "current_version_tag": compd["current-version"],
                 "repo_name": compd.get(
                     "docker-repo", components.Component.DEFAULT_REPO
                 ),
             }
-            last_index = self.add(components.factory.get(**params))
+            last_index = self.add(
+                components.factory.get(str(compd["component-type"]), **params)
+            )
             comp = self.components[last_index]
-            comp.repo_name = compd.get("docker-repo", comp.DEFAULT_REPO)
             comp.prefix = compd.get("prefix", comp.DEFAULT_PREFIX)
             comp.filter = compd.get("filter", comp.DEFAULT_FILTER)
             comp.files = compd.get("files", comp.DEFAULT_FILES)
@@ -110,8 +120,20 @@ class Config:
                 "version-pattern", comp.DEFAULT_VERSION_PATTERN
             )
 
-    def add_from_requirements(self, req_file=None, req_source=None):
-        file_to_read = Path(req_file or self.project_dir / "./requirements.txt")
+    def add_from_requirements(
+        self, req_file: Optional[str] = None, req_source: Optional[str] = None
+    ):
+
+        path = (
+            req_file or self.project_dir / "requirements.txt"
+            if self.project_dir
+            else None
+        )
+        assert (
+            path is not None
+        ), "No requirements file provided and none in project directory found."
+
+        file_to_read = Path(path)
         assert (
             file_to_read.is_file()
         ), f"Requirements file {str(file_to_read)} does not exist."
@@ -146,7 +168,7 @@ class Config:
                         "/^" + (version.count(".")) * "\\d+\\." + "\\d+$/"
                     )  # due ot backslash being forbidden in f-strings inside curly braces
 
-    def count_components_to_update(self):
+    def count_components_to_update(self) -> int:
         self.check()
         return sum(
             [1 for component in self.components if component.newer_version_exists()]
@@ -155,17 +177,25 @@ class Config:
     def check(self):
         return [(comp.component_name, comp.check()) for comp in self.components]
 
-    def run_tests(self, processed_component):
+    def run_tests(self, processed_component: components.Component):
+        assert self.test_command, "No test command provided."
         ret = run(self.test_command, cwd=(self.test_dir or self.project_dir))
         assert (
             ret.returncode == 0
         ), f'{click.style("Error!", fg="red")} ( {processed_component.component_name} ) {str(ret)}'
 
-    def commit_changes(self, component, from_version, to_version, dry_run):
+    def commit_changes(
+        self,
+        component: components.Component,
+        from_version: str,
+        to_version: str,
+        dry_run: bool,
+    ):
         git = local["git"]
+        assert self.config_file, "No config file found."
         with local.cwd(self.config_file.parent):
             ret = git_check(git["diff", "--name-only"].run(retcode=None))
-            changed_files = ret[1].splitlines()
+            changed_files: List[str] = ret[1].splitlines()
             assert set(component.files).issubset(
                 set(changed_files)
             ), f"Not all SRC files are in git changed files.\n{plumbum_msg(ret)}"
@@ -182,7 +212,7 @@ class Config:
                 )
 
     # TODO move code for updating single component outside to new methods
-    def update_files(self, dry_run=False):
+    def update_files(self, dry_run: bool = False):
         counter = 0
         for component in self.components:
             if component.newer_version_exists():

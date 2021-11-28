@@ -59,9 +59,9 @@ def test_update_fail():
     runner = CliRunner()
 
     with local.cwd(config.project_dir):
-
-        result = runner.invoke(cli, ["--print", "update", "--verbose"])
-        assert result.exit_code == 2
+        with pytest.raises(AssertionError) as excinfo:
+            result = runner.invoke(cli, ["--print", "update", "--verbose"])
+            assert "No config file provided" in str(excinfo.value)
 
 
 @pytest.mark.check_version
@@ -71,6 +71,7 @@ def test_update():
 
     with local.cwd(config.config_file.parent):
         result = runner.invoke(cli, ["--print", "update", "--verbose"])
+        pp.pprint(result)
         assert result.exit_code == 0
         assert "next-version" in result.output
 

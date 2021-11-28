@@ -1,7 +1,7 @@
 import datetime
 from abc import ABCMeta, abstractmethod
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import requests
 from cachier import cachier  # type: ignore
@@ -100,11 +100,12 @@ class Component(metaclass=ABCMeta):
             self.name_version_tag(self.next_version_tag),
         )
 
-    def update_files(self, base_dir: str, dry_run: bool = False) -> int:
+    def update_files(self, base_dir: Optional[Path], dry_run: bool = False) -> int:
         counter: int = 0
-
+        if base_dir is None:
+            raise FileNotFoundError("base_dir is None")
         for file_name in self.files:
-            file: Path = Path(Path(base_dir) / file_name)
+            file = Path(base_dir / file_name)
             orig_content: str = file.read_text()
             if self.count_occurence(orig_content) > 1:
                 logger.error(
@@ -200,7 +201,7 @@ class PypiComponent(Component):
     DEFAULT_VERSION_PATTERN: str = "{component}=={version}"
 
     def __init__(
-        self, component_name: str, current_version_tag: str, **_ignored: str
+        self, component_name: str, current_version_tag: str, **_ignored: Any
     ) -> None:
         super(PypiComponent, self).__init__(component_name, current_version_tag)
         self.component_type = "pypi"
@@ -211,7 +212,7 @@ class PypiComponent(Component):
 
 
 class ComponentFactory:
-    def get(self, component_type: str, **args: str) -> Component:
+    def get(self, component_type: str, **args: Any) -> Component:
         if component_type == "docker-image":
             return DockerImageComponent(**args)
         elif component_type == "pypi":

@@ -21,6 +21,8 @@ wheel = "*"
 flynt = "*"
 mypy = "*"
 types-requests = "*"
+types-setuptools = "*"
+types-pyyaml = "*"
 
 [packages]
 loguru = "==0.5.3"

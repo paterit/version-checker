@@ -32,7 +32,7 @@ COMP = {
 }
 
 
-def compare_versions(old, new):
+def compare_versions(old: str, new: str):
     assert parse(old) < parse(new)
 
 
@@ -50,7 +50,7 @@ def test_parse_compare_versions():
     )
 
 
-def check_docker_images_versions(repo_name, component_name, version_tag):
+def check_docker_images_versions(repo_name: str, component_name: str, version_tag: str):
     tags = components.fetch_docker_images_versions(repo_name, component_name)
     assert len(tags) > 0, f"Empty list returned {tags}"
     assert (
@@ -58,7 +58,7 @@ def check_docker_images_versions(repo_name, component_name, version_tag):
     ), f"For {repo_name}/{component_name} lack of version: {version_tag} in tags {tags}"
 
 
-def check_pypi_versions(component_name, version_tag):
+def check_pypi_versions(component_name: str, version_tag: str):
     tags = components.fetch_pypi_versions(component_name)
     assert len(tags) > 0, f"Empty list returned {tags}"
     assert (
@@ -101,7 +101,7 @@ def test_component_checker_newer_version():
     assert checker.check() is False
 
 
-def test_update_file_with_version(tmpdir):
+def test_update_file_with_version(tmpdir: Path):
     comp = components.factory.get(**COMP["logspout"])
     comp.files = ["file1"]
     comp.next_version = parse("v3.3")
@@ -112,7 +112,7 @@ def test_update_file_with_version(tmpdir):
     assert "v3.3" in file1.read_text(encoding=None)
 
 
-def test_update_file_with_version_wrong_file(tmpdir):
+def test_update_file_with_version_wrong_file(tmpdir: Path):
     comp = components.factory.get(**COMP["logspout"])
     comp.files = ["file2"]
     with pytest.raises(FileNotFoundError) as excinfo:
@@ -120,7 +120,7 @@ def test_update_file_with_version_wrong_file(tmpdir):
     assert "No such file or directory" in str(excinfo.value)
 
 
-def test_update_file_with_double_entry_for_component(tmpdir):
+def test_update_file_with_double_entry_for_component(tmpdir: Path):
     comp = components.factory.get(**COMP["logspout"])
     comp.files = ["file1"]
     comp.next_version = parse("v3.3")
@@ -134,7 +134,7 @@ def test_update_file_with_double_entry_for_component(tmpdir):
     assert "Too many versions of" in str(excinfo.value)
 
 
-def test_update_file_with_version_not_updated(tmpdir):
+def test_update_file_with_version_not_updated(tmpdir: Path):
     comp = components.factory.get(**COMP["logspout"])
     comp.files = ["file1"]
     file1 = tmpdir / "file1"
@@ -144,7 +144,7 @@ def test_update_file_with_version_not_updated(tmpdir):
     assert "no replacement done for" in str(excinfo.value)
 
 
-def test_update_file_with_two_components_with_same_version_tag_pypi(tmpdir):
+def test_update_file_with_two_components_with_same_version_tag_pypi(tmpdir: Path):
     comp = components.factory.get(**COMP["Django"])
     comp.next_version_tag = "2.2.2"
     comp.files = ["file1"]
