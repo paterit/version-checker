@@ -32,7 +32,7 @@ behave = "==1.2.6"
 requests = "==2.26.0"
 packaging = "==21.3"
 plumbum = "==1.7.1"
-cachier = "==1.5.3"
+cachier = "==1.5.4"
 python-rex = "==0.4"
 pymongo = "==3.12.1" # to avoid warnings from cachier not needed really
 click = "==7.1"
