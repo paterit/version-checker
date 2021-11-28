@@ -50,7 +50,7 @@ class Component(metaclass=ABCMeta):
     @abstractmethod
     def fetch_versions_tags(self) -> List[str]:
         """should return a list of versions eg.: ('1.0.1', '2.0.2')"""
-        pass
+        pass  # pragma: no cover
 
     # TODO move max statement after self.next_version= to new mehtod: get_max_version_number()
     def check(self) -> bool:

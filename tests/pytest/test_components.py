@@ -112,12 +112,19 @@ def test_update_file_with_version(tmpdir: Path):
     assert "v3.3" in file1.read_text(encoding=None)
 
 
+def test_update_file_with_wrong_dir():
+    comp = components.factory.get(**COMP["logspout"])
+    with pytest.raises(FileNotFoundError) as excinfo:
+        comp.update_files(None)
+        assert "base_dir is None" in str(excinfo.value)
+
+
 def test_update_file_with_version_wrong_file(tmpdir: Path):
     comp = components.factory.get(**COMP["logspout"])
     comp.files = ["file2"]
     with pytest.raises(FileNotFoundError) as excinfo:
         comp.update_files(tmpdir)
-    assert "No such file or directory" in str(excinfo.value)
+        assert "No such file or directory" in str(excinfo.value)
 
 
 def test_update_file_with_double_entry_for_component(tmpdir: Path):
@@ -131,7 +138,7 @@ def test_update_file_with_double_entry_for_component(tmpdir: Path):
     )
     with pytest.raises(Exception) as excinfo:
         comp.update_files(tmpdir)
-    assert "Too many versions of" in str(excinfo.value)
+        assert "Too many versions of" in str(excinfo.value)
 
 
 def test_update_file_with_version_not_updated(tmpdir: Path):
@@ -141,7 +148,7 @@ def test_update_file_with_version_not_updated(tmpdir: Path):
     file1.write_text("v3.3", encoding=None)
     with pytest.raises(Exception) as excinfo:
         comp.update_files(tmpdir)
-    assert "no replacement done for" in str(excinfo.value)
+        assert "no replacement done for" in str(excinfo.value)
 
 
 def test_update_file_with_two_components_with_same_version_tag_pypi(tmpdir: Path):
@@ -163,7 +170,7 @@ def test_wrong_component_type():
     glances = {**COMP["glances"], "component_type": "not_exists"}
     with pytest.raises(ValueError) as excinfo:
         components.factory.get(**glances)
-    assert "not implemented" in str(excinfo.value)
+        assert "not implemented" in str(excinfo.value)
 
 
 @pytest.mark.slow
@@ -184,4 +191,4 @@ def test_error_in_getting_token_for_docker_image_version_info():
             "logspout",
             token_url="https://auth.docker.io/token_get_400_error",
         )
-    assert "Could not get auth token" in str(excinfo.value)
+        assert "Could not get auth token" in str(excinfo.value)

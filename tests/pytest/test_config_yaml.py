@@ -138,6 +138,15 @@ def test_exlude_versions_to_yaml(tmp_path: Path):
     assert "v3.2.6" in file_content
 
 
+def test_save_files_to_yaml_wrong_file_path(tmp_path: Path):
+    config = config_yaml.Config()
+    config.add(components.factory.get(**comp["logspout"]))
+    config.components[0].files = ["file1", "file2"]
+    with pytest.raises(FileNotFoundError) as excinfo:
+        config.save_to_yaml()
+        assert "No config file provided" in str(excinfo.value)
+
+
 def test_save_files_to_yaml(tmp_path: Path):
     config_file = tmp_path / "components.yaml"
     config = config_yaml.Config(components_yaml_file=config_file)
