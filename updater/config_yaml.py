@@ -6,13 +6,13 @@ from subprocess import run
 from typing import Any, Dict, List, Optional, Tuple
 import pkg_resources
 
-
 import click
 import yaml
 from loguru import logger
 from plumbum import local  # type: ignore
 
 from updater import TPlumbumRunReturn, git_check, plumbum_msg, components
+from updater.components import ComponentType, Component
 
 
 class Config:
@@ -26,7 +26,7 @@ class Config:
     STATE_UPDATE_DONE = "UPDATE_DONE"
 
     def __init__(self, components_yaml_file: Optional[Path] = None) -> None:
-        self.components: List[components.Component] = []
+        self.components: List[Component] = []
         self.config_file = components_yaml_file
         self.project_dir: Optional[
             Path
@@ -36,7 +36,7 @@ class Config:
         self.git_commit: bool = True
         self.status: Dict[str, Dict[str, str]] = {}
 
-    def update_status(self, component: components.Component, step: str) -> None:
+    def update_status(self, component: Component, step: str) -> None:
         if component.component_name not in self.status:
             self.status[component.component_name] = {}
         comp = self.status[component.component_name]
@@ -51,7 +51,7 @@ class Config:
     def get_status(self) -> str:
         return pprint.pformat(self.status, indent=4)
 
-    def add(self, component: components.Component) -> int:
+    def add(self, component: Component) -> int:
         self.components.append(component)
         return self.components.index(self.components[-1])
 
@@ -102,9 +102,7 @@ class Config:
             params: components.TDictComponent = {
                 "component_name": component_name,
                 "current_version_tag": compd["current-version"],
-                "repo_name": compd.get(
-                    "docker-repo", components.Component.DEFAULT_REPO
-                ),
+                "repo_name": compd.get("docker-repo", Component.DEFAULT_REPO),
             }
             last_index = self.add(
                 components.factory.get(str(compd["component-type"]), **params)
@@ -147,12 +145,12 @@ class Config:
 
                 name, version = (requirement.project_name, requirement.specs[0][1])
                 if not any(
-                    x.component_name == name and x.component_type == "pypi"
+                    x.component_name == name and x.component_type == ComponentType.PYPI
                     for x in self.components
                 ):
                     self.add(
                         components.factory.get(
-                            component_type="pypi",
+                            component_type=ComponentType.PYPI.value,
                             component_name=name,
                             current_version_tag=version,
                         )
@@ -177,7 +175,7 @@ class Config:
     def check(self) -> List[Tuple[str, bool]]:
         return [(comp.component_name, comp.check()) for comp in self.components]
 
-    def run_tests(self, processed_component: components.Component) -> None:
+    def run_tests(self, processed_component: Component) -> None:
         assert self.test_command, "No test command provided."
         ret = run(self.test_command, cwd=(self.test_dir or self.project_dir))
         assert (
@@ -185,11 +183,7 @@ class Config:
         ), f'{click.style("Error!", fg="red")} ( {processed_component.component_name} ) {str(ret)}'
 
     def commit_changes(
-        self,
-        component: components.Component,
-        from_version: str,
-        to_version: str,
-        dry_run: bool,
+        self, component: Component, from_version: str, to_version: str, dry_run: bool
     ) -> None:
         git = local["git"]
         assert self.config_file, "No config file found."

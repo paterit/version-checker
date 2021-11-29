@@ -1,5 +1,6 @@
 import datetime
 from abc import ABCMeta, abstractmethod
+from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
@@ -16,6 +17,11 @@ TFileNameList = List[str]
 TDictComponent = Dict[str, Union[Optional[str], TVer, TFileNameList, List[TVer]]]
 
 
+class ComponentType(Enum):
+    DOCKER = "docker-image"
+    PYPI = "pypi"
+
+
 class Component(metaclass=ABCMeta):
 
     DEFAULT_PREFIX: Optional[str] = None
@@ -26,8 +32,13 @@ class Component(metaclass=ABCMeta):
     LATEST_TAGS: List[str] = ["latest"]
     DEFAULT_VERSION_PATTERN: str = "{version}"
 
-    def __init__(self, component_name: str, current_version_tag: str) -> None:
-        self.component_type: Optional[str] = None
+    def __init__(
+        self,
+        component_type: ComponentType,
+        component_name: str,
+        current_version_tag: str,
+    ) -> None:
+        self.component_type = component_type
         self.component_name: str = component_name
         self.current_version_tag: str = current_version_tag
         self.current_version: TVer = parse(current_version_tag)
@@ -70,7 +81,7 @@ class Component(metaclass=ABCMeta):
 
     def to_dict(self) -> TDictComponent:
         ret: TDictComponent = {
-            "component-type": self.component_type,
+            "component-type": self.component_type.value,
             "current-version": self.current_version_tag,
             "next-version": self.next_version_tag,
         }
@@ -183,9 +194,10 @@ class DockerImageComponent(Component):
     def __init__(
         self, repo_name: str, component_name: str, current_version_tag: str
     ) -> None:
-        super(DockerImageComponent, self).__init__(component_name, current_version_tag)
+        super(DockerImageComponent, self).__init__(
+            ComponentType.DOCKER, component_name, current_version_tag
+        )
         self.repo_name = repo_name
-        self.component_type = "docker-image"
         self.version_pattern = self.DEFAULT_VERSION_PATTERN
 
     def fetch_versions_tags(self) -> List[str]:
@@ -204,8 +216,9 @@ class PypiComponent(Component):
     def __init__(
         self, component_name: str, current_version_tag: str, **_ignored: Any
     ) -> None:
-        super(PypiComponent, self).__init__(component_name, current_version_tag)
-        self.component_type = "pypi"
+        super(PypiComponent, self).__init__(
+            ComponentType.PYPI, component_name, current_version_tag
+        )
         self.version_pattern = self.DEFAULT_VERSION_PATTERN
 
     def fetch_versions_tags(self) -> List[str]:
@@ -214,9 +227,9 @@ class PypiComponent(Component):
 
 class ComponentFactory:
     def get(self, component_type: str, **args: Any) -> Component:
-        if component_type == "docker-image":
+        if component_type == ComponentType.DOCKER.value:
             return DockerImageComponent(**args)
-        elif component_type == "pypi":
+        elif component_type == ComponentType.PYPI.value:
             return PypiComponent(**args)
         else:
             raise ValueError(f"Componet type: {component_type} :not implemented!")
