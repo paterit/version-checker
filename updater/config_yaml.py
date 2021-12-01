@@ -118,23 +118,12 @@ class Config:
                 "version-pattern", comp.DEFAULT_VERSION_PATTERN
             )
 
-    def add_from_requirements(
-        self, req_file: Optional[str] = None, req_source: Optional[str] = None
-    ) -> None:
+    def add_from_requirements(self, req_file: str, req_source: str) -> None:
 
-        path = (
-            req_file or self.project_dir / "requirements.txt"
-            if self.project_dir
-            else None
-        )
-        assert (
-            path is not None
-        ), "No requirements file provided and none in project directory found."
-
-        file_to_read = Path(path)
-        assert (
-            file_to_read.is_file()
-        ), f"Requirements file {str(file_to_read)} does not exist."
+        file_to_read = Path(req_file)
+        if not file_to_read.is_file():
+            logger.error(f"File {file_to_read} not found.")
+            raise FileNotFoundError(f"Missing file for import: {file_to_read}")
         with file_to_read.open() as requirements_txt:
             for requirement in pkg_resources.parse_requirements(requirements_txt):
                 if len(requirement.specs) == 0 or requirement.specs[0][0] != "==":
@@ -178,9 +167,10 @@ class Config:
     def run_tests(self, processed_component: Component) -> None:
         assert self.test_command, "No test command provided."
         ret = run(self.test_command, cwd=(self.test_dir or self.project_dir))
-        assert (
-            ret.returncode == 0
-        ), f'{click.style("Error!", fg="red")} ( {processed_component.component_name} ) {str(ret)}'
+        if ret.returncode != 0:
+            raise ValueError(
+                f'{click.style("Error!", fg="red")} ( {processed_component.component_name} ) {str(ret)}'
+            )
 
     def commit_changes(
         self, component: Component, from_version: str, to_version: str, dry_run: bool

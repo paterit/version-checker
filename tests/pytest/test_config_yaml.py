@@ -326,9 +326,9 @@ def test_update_components_files_with_testing_negative(capfd):
         ("requests", True),
         ("python", True),
     ]
-    with pytest.raises(AssertionError) as excinfo:
+    with pytest.raises(ValueError) as excinfo:
         config.update_files()
-    assert "Error" in str(excinfo.value)
+        assert "Error" in str(excinfo.value)
     captured = capfd.readouterr()
     assert "Test KO" in captured.out, captured.out
 
@@ -376,6 +376,16 @@ def test_add_requirements_from_pipfile():
     assert any(x.component_name == "behave" for x in config.components)
     assert any(x.component_name == "cachier" for x in config.components)
     assert not any(x.component_name == "xwrong" for x in config.components)
+
+
+def test_add_requirements_no_file():
+    config = config_from_copy_of_test_dir()
+    if config.config_file:
+        with pytest.raises(FileNotFoundError) as excinfo:
+            config.add_from_requirements(
+                str(config.config_file.parent / "rrequirements.txt"), "requirements"
+            )
+            assert "Missing file for import" in str(excinfo.value)
 
 
 def test_add_requirements_from_requirements_txt():

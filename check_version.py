@@ -215,12 +215,14 @@ def update(
     "--source",
     help="Source of the requirement.txt file.",
     type=click.Choice(["requirements", "pipfile"]),
+    required=True,
 )  # type: ignore
 @click.option(
     "--requirements-file",
     "requirements_file",
     type=click.Path(exists=True),
     help="Requirements.txt file from which packages and versions will be added to components.yaml file.",
+    required=True,
 )  # type: ignore
 @click.pass_context
 def import_req(ctx: Context, source: str, requirements_file: Path) -> None:
