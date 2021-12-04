@@ -108,7 +108,8 @@ def check(
     clear_cache: bool,
     ignore_default_file: bool,
 ) -> None:
-    """Check if new versions of defined components are available."""
+    """Check if new versions of ddefined components are available.
+    """
     config = ctx.obj["config"]
     destination_file = ctx.obj["destination_file"]
     dry_run = ctx.obj["dry_run"]
@@ -180,7 +181,7 @@ def update(
     project_dir: Optional[Path],
     verbose: bool,
 ) -> None:
-    """Update files with version numbers, run test and commit changes."""
+    """Update files, run test and commit changes."""
     config = ctx.obj["config"]
     dry_run = ctx.obj["dry_run"]
     destination_file = ctx.obj["destination_file"]
@@ -199,12 +200,13 @@ def update(
         if verbose:
             click.echo(config.get_status())
             logger.trace(config.get_status())
-    except Exception:
+    except Exception as e:
         logger.error(
             (
                 f'{click.style("Something went wrong!!!", "red")}\n'
                 f"Config status:\n"
-                f"{config.get_status()}"
+                f"{config.get_status()}\n"
+                f"{e}"
             )
         )
         sys.exit(2)

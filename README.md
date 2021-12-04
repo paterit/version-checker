@@ -16,9 +16,40 @@ Create YAML file with definition of your components (see example in
 [tests/test_files/components.yaml](https://github.com/paterit/version-checker/blob/master/tests/test_files/components.yaml) ). Place `components.yaml` in the
 root of your project directory and run:
 
-`python check_version.py --file=/path/to/your/components.yaml --dry-run check --verbose`
+```python
+>>> python -m updater check
+10 components to check
+1 components to update
+```
 
-It will, for each defined component:
+```python
+>>> python -m updater check --verbose
+10 components to check
+1 components to update
+pymongo - current: 3.12.1 next: 3.12.2
+```
+
+This will check versions for all components defined in `components2.yaml`:
+
+```python
+>>> python -m updater --file=/path/to/your/components2.yaml check
+10 components to check
+1 components to update
+```
+
+Here is an example of update script which will do checking and print out update config file without making any changes in your files:
+
+```python
+>>> python -m updater --dry-run --print update
+```
+
+Here is full example of using update command:
+
+```python
+>>> python -m updater update --git-commit --test-command="make test"
+```
+
+It will, for each defined component in `components.yaml` from local directory:
 
 
 1. Check if there are new versions of your components available
@@ -36,7 +67,9 @@ It will, for each defined component:
 
 Install via pypi packages repository:
 
-`pip install updater`
+```python
+>>> python -m pip install updater
+```
 
 ## Usage
 
@@ -70,7 +103,7 @@ Config is printed to stdout at the end.
 
 #### check
 
-Check if new versions of defined components are available.
+Check if new versions of ddefined components are available.
 
 ```
 updater check [OPTIONS]
@@ -124,7 +157,7 @@ updater import-req [OPTIONS]
 
 
 #### --source <source>
-Source of the requirement.txt file.
+Source of the requirement.txt file.  [required]
 
 
 * **Options**
@@ -134,15 +167,11 @@ Source of the requirement.txt file.
 
 
 #### --requirements-file <requirements_file>
-Requirements.txt file from which packages and versions will be added to components.yaml file.
-
-
-#### --verbose
-Print at the end detailed info for each component about update process.
+Requirements.txt file from which packages and versions will be added to components.yaml file.  [required]
 
 #### update
 
-Update files with version numbers, run test and commit changes.
+Update files, run test and commit changes.
 
 ```
 updater update [OPTIONS]

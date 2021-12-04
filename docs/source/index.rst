@@ -22,9 +22,31 @@ Create YAML file with definition of your components (see example in
 `tests/test_files/components.yaml`_ ). Place ``components.yaml`` in the
 root of your project directory and run:
 
-``python check_version.py --file=/path/to/your/components.yaml --dry-run check --verbose``
+>>> python -m updater check
+10 components to check
+1 components to update
 
-It will, for each defined component: 
+>>> python -m updater check --verbose
+10 components to check
+1 components to update
+pymongo - current: 3.12.1 next: 3.12.2
+
+
+This will check versions for all components defined in ``components2.yaml``:
+
+>>> python -m updater --file=/path/to/your/components2.yaml check 
+10 components to check
+1 components to update
+
+Here is an example of update script which will do checking and print out update config file without making any changes in your files:
+
+>>> python -m updater --dry-run --print update
+
+Here is full example of using update command:
+
+>>> python -m updater update --git-commit --test-command="make test"
+
+It will, for each defined component in ``components.yaml`` from local directory: 
 
 #) Check if there are new versions of your components available 
 #) Replace in all files version numbers to the newest one 
@@ -36,7 +58,7 @@ Installation
 
 Install via pypi packages repository:
 
-``pip install updater``
+>>> python -m pip install updater
 
 .. _tests/test_files/components.yaml: https://github.com/paterit/version-checker/blob/master/tests/test_files/components.yaml
 
