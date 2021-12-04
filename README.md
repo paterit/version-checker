@@ -196,7 +196,11 @@ When set after each components update, git commit is performed in active branch.
 If given, then it will be treated as a root dir for paths in config file.
 
 
-#### --verbose
+#### -v(, --verbose
+Print at the end detailed info for each component about update process.
+
+
+#### -vv(, --very-verbose
 Print at the end detailed info for each component about update process.
 
 <!-- Indices and tables

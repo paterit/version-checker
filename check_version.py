@@ -205,7 +205,7 @@ def update(
 
     try:
         components_updated, files_updated = config.update_files(dry_run)
-        if verbose:
+        if verbose or very_verbose:
             click.echo(
                 f"{components_updated} components updated, {files_updated} files updated"
             )
