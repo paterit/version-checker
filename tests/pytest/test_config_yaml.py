@@ -216,7 +216,7 @@ def test_update_components_files():
         ("requests", True),
         ("python", True),
     ]
-    assert config.update_files() == 6
+    assert config.update_files() == (5, 6)
 
 
 def test_save_config_dry_run():
@@ -296,7 +296,7 @@ def test_update_components_files_with_testing_positive(capfd):
         ("requests", True),
         ("python", True),
     ]
-    assert config.update_files() == 6
+    assert config.update_files() == (5, 6)
     captured = capfd.readouterr()
     assert captured.out.count("Test OK") == 5, captured.out
 
@@ -311,7 +311,7 @@ def test_update_components_files_with_project_dir_param(capfd):
         ("requests", True),
         ("python", True),
     ]
-    assert config.update_files() == 6
+    assert config.update_files() == (5, 6)
     captured = capfd.readouterr()
     assert captured.out.count("Test OK") == 5, captured.out
 

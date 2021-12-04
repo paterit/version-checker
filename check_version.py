@@ -168,7 +168,14 @@ def check(
     help="If given, then it will be treated as a root dir for paths in config file.",
 )  # type: ignore
 @click.option(
+    "-v",
     "--verbose",
+    is_flag=True,
+    help="Print at the end detailed info for each component about update process.",
+)  # type: ignore
+@click.option(
+    "-vv",
+    "--very-verbose",
     is_flag=True,
     help="Print at the end detailed info for each component about update process.",
 )  # type: ignore
@@ -180,6 +187,7 @@ def update(
     git_commit: bool,
     project_dir: Optional[Path],
     verbose: bool,
+    very_verbose: bool,
 ) -> None:
     """Update files, run test and commit changes."""
     config = ctx.obj["config"]
@@ -196,8 +204,12 @@ def update(
     config.save_config(destination_file, dry_run, print_yaml)
 
     try:
-        config.update_files(dry_run)
+        components_updated, files_updated = config.update_files(dry_run)
         if verbose:
+            click.echo(
+                f"{components_updated} components updated, {files_updated} files updated"
+            )
+        if very_verbose:
             click.echo(config.get_status())
             logger.trace(config.get_status())
     except Exception as e:

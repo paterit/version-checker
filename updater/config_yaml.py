@@ -177,6 +177,7 @@ class Config:
     ) -> None:
         git = local["git"]
         assert self.config_file, "No config file found."
+        # TODO shouldn't it be self.project_dir param rather?
         with local.cwd(self.config_file.parent):
             ret: TPlumbumRunReturn = git_check(
                 git["diff", "--name-only"].run(retcode=None)
@@ -197,15 +198,17 @@ class Config:
                     git["commit", f"--message={commit_message}"].run(retcode=None)
                 )
 
-    # TODO move code for updating single component outside to new methods
-    def update_files(self, dry_run: bool = False) -> int:
-        counter = 0
+    def update_files(self, dry_run: bool = False) -> Tuple[int, int]:
+        file_counter = 0
+        components_counter = 0
         for component in self.components:
             if component.newer_version_exists():
                 orig_current_tag = component.current_version_tag
                 orig_next_tag = component.next_version_tag
                 self.update_status(component, self.STATE_UPDATE_STARTED)
-                counter += component.update_files(self.project_dir, dry_run)
+                prev_file_counter = file_counter
+                file_counter += component.update_files(self.project_dir, dry_run)
+                components_counter += 1 if file_counter > prev_file_counter else 0
                 self.update_status(component, self.STATE_FILES_UPDATED)
                 if self.test_command:
                     self.run_tests(component)
@@ -228,7 +231,7 @@ class Config:
             else:
                 self.update_status(component, self.STATE_UPDATE_SKIPPED)
 
-        return counter
+        return components_counter, file_counter
 
     def get_versions_info(self) -> List[str]:
         new = [

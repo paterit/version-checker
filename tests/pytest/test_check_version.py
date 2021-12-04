@@ -64,6 +64,17 @@ def test_update_fail():
 
 
 @pytest.mark.check_version
+def test_update_verbose():
+    config = config_from_copy_of_test_dir()
+    runner = CliRunner()
+    if config.config_file:
+        with local.cwd(config.config_file.parent):
+            result = runner.invoke(cli, ["update", "--verbose"])
+            assert result.exit_code == 0
+            assert "5 components updated, 6 files updated" in result.output
+
+
+@pytest.mark.check_version
 def test_update():
     config = config_from_copy_of_test_dir()
     runner = CliRunner()
