@@ -60,6 +60,53 @@ Install via pypi packages repository:
 
 >>> python -m pip install updater
 
+
+Config file format
+------------------
+
+Example of one component definition:
+
+.. code-block:: yaml
+
+   # name of the component
+   python:
+      # docker-image or pypi
+      component-type: docker-image
+      # this version tak needs to aligned with versions in files
+      # if you put "latest" then check and update will be skipped for this component
+      current-version: 3.6.6-alpine3.8
+      # for docker-image component-type only
+      docker-repo: library
+      # filter used to get all possible versions
+      filter: /^\d+\.\d+\.\d+-alpine\d+\.\d+$/
+      # files in which version number should be replaced
+      files: [locust/Dockerfile, locust/some_script.sh]
+      # this is the find (current version) and replace (new version) pattern.
+      # {version} and {component} can be used
+      version-pattern: "PYTHON_VERSION {version}"
+      # if there are different patterns in particular files, you can specify them here
+      # file level pattern overrides component level pattern
+      files-version-pattern:
+         - file: locust/Dockerfile
+            pattern: PYTHON_VERSION={version}
+         - file: locust/some_script.sh
+            pattern: version {version}
+   Django:
+      component-type: pypi
+      current-version: 2.2.24
+      filter: /^\d+\.\d+(\.\d+)?$/
+      files: [app/requirements.txt]
+   logspout:
+      component-type: docker-image
+      current-version: v3.1
+      docker-repo: gliderlabs
+      filter: /^v\d+\.\d+\.\d+$/
+      # if there is prefix before numeric part of version, you can specify it here
+      prefix: v
+      files: [logspout/Dockerfile-logspout]
+      # put here versions which should be skipped
+      exclude-versions: [v3.2.6]
+
 .. _tests/test_files/components.yaml: https://github.com/paterit/version-checker/blob/master/tests/test_files/components.yaml
 
 Usage
