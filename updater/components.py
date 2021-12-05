@@ -268,7 +268,7 @@ class ComponentFactory:
         elif component_type == ComponentType.PYPI.value:
             return PypiComponent(**args)
         else:
-            raise ValueError(f"Componet type: {component_type} :not implemented!")
+            raise ValueError(f"Componet type: {component_type} not implemented!")
 
 
 factory = ComponentFactory()
