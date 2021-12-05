@@ -110,7 +110,7 @@ def check(
 ) -> None:
     """Check if new versions of ddefined components are available.
     """
-    config = ctx.obj["config"]
+    config: config_yaml.Config = ctx.obj["config"]
     destination_file = ctx.obj["destination_file"]
     dry_run = ctx.obj["dry_run"]
     print_yaml = ctx.obj["print_yaml"]
@@ -190,7 +190,7 @@ def update(
     very_verbose: bool,
 ) -> None:
     """Update files, run test and commit changes."""
-    config = ctx.obj["config"]
+    config: config_yaml.Config = ctx.obj["config"]
     dry_run = ctx.obj["dry_run"]
     destination_file = ctx.obj["destination_file"]
     print_yaml = ctx.obj["print_yaml"]
@@ -198,7 +198,7 @@ def update(
     config.test_command = test_command.split() if test_command is not None else None
     config.test_dir = test_dir
     config.git_commit = git_commit
-    config.project_dir = Path(project_dir or config.project_dir)
+    config.project_dir = Path(project_dir) if project_dir else config.project_dir
     config.read_from_yaml()
     config.check()
     config.save_config(destination_file, dry_run, print_yaml)

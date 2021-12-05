@@ -55,17 +55,13 @@ class Config:
         self.components.append(component)
         return self.components.index(self.components[-1])
 
-    def components_to_dict(self) -> Dict[str, components.TDictComponent]:
-        return {
-            component.component_name: component.to_dict()
-            for component in self.components
-        }
-
     def save_to_yaml(self, file: Optional[str] = None) -> None:
         path = file or self.config_file
         if path:
             file_to_save: Path = Path(path)
-            yaml.dump(self.components_to_dict(), open(file_to_save, "w"))
+            yaml.dump(
+                Component.components_to_dict(self.components), open(file_to_save, "w")
+            )
         else:
             logger.error(
                 f"No config file provided and no config file found in project directory."
@@ -87,7 +83,11 @@ class Config:
                 self.save_to_yaml()
 
         if print_yaml:
-            click.echo(pprint.pformat(yaml.dump(self.components_to_dict()), indent=4))
+            click.echo(
+                pprint.pformat(
+                    yaml.dump(Component.components_to_dict(self.components)), indent=4
+                )
+            )
 
     def read_from_yaml(self, file: Optional[Path] = None) -> None:
         read_file = file or self.config_file

@@ -34,9 +34,9 @@ def step_impl(context):
     ctx["params"].append(f"--project-dir={str(ctx['project_dir'])}")
 
 
-@given("script is run with --verbose param")
+@given("script is run with --very-verbose param")
 def step_impl(context):
-    context.update_versions["params"].append("--verbose")
+    context.update_versions["params"].append("--very-verbose")
 
 
 @when("script is run in update mode")

@@ -192,3 +192,31 @@ def test_error_in_getting_token_for_docker_image_version_info():
             token_url="https://auth.docker.io/token_get_400_error",
         )
         assert "Could not get auth token" in str(excinfo.value)
+
+
+def test_components_to_dict(tmp_path: Path):
+
+    components_list = []
+    components_list.append(components.factory.get(**COMP["glances"]))
+    components_list.append(components.factory.get(**COMP["logspout"]))
+    components_list.append(components.factory.get(**COMP["Django"]))
+    result = {
+        "glances": {
+            "component-type": "docker-image",
+            "current-version": "v2.11.1",
+            "docker-repo": "nicolargo",
+            "next-version": "v2.11.1",
+        },
+        "logspout": {
+            "component-type": "docker-image",
+            "current-version": "v3.1",
+            "docker-repo": "gliderlabs",
+            "next-version": "v3.1",
+        },
+        "Django": {
+            "component-type": "pypi",
+            "current-version": "2.1.2",
+            "next-version": "2.1.2",
+        },
+    }
+    assert result == components.Component.components_to_dict(components_list)

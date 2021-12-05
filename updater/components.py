@@ -14,6 +14,8 @@ from rex import rex  # type: ignore
 TVer = Union[LegacyVersion, Version]
 TVerList = List[TVer]
 TFileNameList = List[str]
+
+# dictionary used in components <-> yaml conversion
 TDictComponent = Dict[str, Union[Optional[str], TVer, TFileNameList, List[TVer]]]
 
 
@@ -139,11 +141,18 @@ class Component(metaclass=ABCMeta):
                         )
                     )
                     raise Exception(
-                        f"Error in version replacment for {self.component_name}: no replacement done for current_version"
+                        f"Error in version replacment for {self.component_name}:"
+                        f" no replacement done for current_version"
                     )
                 file.write_text(new_content)
             counter += 1
         return counter
+
+    @staticmethod
+    def components_to_dict(components: List["Component"]) -> Dict[str, TDictComponent]:
+        return {
+            component.component_name: component.to_dict() for component in components
+        }
 
 
 def clear_versions_cache() -> None:

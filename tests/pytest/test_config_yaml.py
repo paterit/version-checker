@@ -163,7 +163,7 @@ def test_use_filter_for_component_to_yaml(tmp_path: Path):
     config = config_yaml.Config(components_yaml_file=config_file)
     config.add(components.factory.get(**comp["logspout"]))
     config.components[0].prefix = "v"
-    config.components[0].filter = "/^v\d+\.\d+\.\d+$/"
+    config.components[0].filter = r"/^v\d+\.\d+\.\d+$/"
     config.components[0].check()
     assert config.components[0].next_version_tag == rex(config.components[0].filter)
 
@@ -173,38 +173,11 @@ def test_components_list_write_read_yaml_file(tmp_path: Path):
     config = config_yaml.Config(components_yaml_file=config_file)
     config.add(components.factory.get(**comp["glances"]))
     config.add(components.factory.get(**comp["logspout"]))
-    dict1 = config.components_to_dict()
+    dict1 = components.Component.components_to_dict(config.components)
     config.save_to_yaml()
     config.read_from_yaml()
-    dict2 = config.components_to_dict()
+    dict2 = components.Component.components_to_dict(config.components)
     assert dict1 == dict2
-
-
-def test_components_to_dict(tmp_path: Path):
-    config = config_yaml.Config(tmp_path / "components.yaml")
-    config.add(components.factory.get(**comp["glances"]))
-    config.add(components.factory.get(**comp["logspout"]))
-    config.add(components.factory.get(**comp["Django"]))
-    result = {
-        "glances": {
-            "component-type": "docker-image",
-            "current-version": "v2.11.1",
-            "docker-repo": "nicolargo",
-            "next-version": "v2.11.1",
-        },
-        "logspout": {
-            "component-type": "docker-image",
-            "current-version": "v3.1",
-            "docker-repo": "gliderlabs",
-            "next-version": "v3.1",
-        },
-        "Django": {
-            "component-type": "pypi",
-            "current-version": "2.1.2",
-            "next-version": "2.1.2",
-        },
-    }
-    assert result == config.components_to_dict()
 
 
 def test_update_components_files():
