@@ -49,13 +49,17 @@ sbe:
 sbe-wip:
 	pipenv run behave --tags=wip --stop --no-skipped --no-summary --no-logcapture --no-capture-stderr --no-logcapture --logging-level=DEBUG tests/features
 pytest:
-	pipenv run python -m pytest --disable-warnings -vv -x -m "not slow"
+	pipenv run python -m pytest --disable-warnings -vv -x -m "not slow" --exitfirst --showlocals --tb=long 
 pytest-all:
 	pipenv run python -m pytest --disable-warnings -vv -x
 pytest-wip:
 	pipenv run python -m pytest --disable-warnings -vv -m wip
 pytest-help:
 	pipenv run python -m pytest --help
+pytest-config:
+	pipenv run python -m pytest --disable-warnings -vv -m "not slow" --exitfirst --showlocals --tb=long tests/pytest/test_config_yaml.py
+pytest-component:
+	pipenv run python -m pytest --disable-warnings -vv -m "not slow" --exitfirst tests/pytest/test_components.py
 black: 
 	pipenv run black .
 test:

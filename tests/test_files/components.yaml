@@ -28,5 +28,10 @@ python:
   current-version: 3.6.6-alpine3.8
   docker-repo: library
   filter: /^\d+\.\d+\.\d+-alpine\d+\.\d+$/
-  files: [locust/Dockerfile]
-  version-pattern: "PYTHON_VERSION={version}"
+  files: [locust/Dockerfile, locust/some_script.sh]
+  version-pattern: "PYTHON_VERSION {version}"
+  files-version-pattern:
+    - file: locust/Dockerfile
+      pattern: PYTHON_VERSION={version}
+    - file: locust/some_script.sh
+      pattern: version {version}

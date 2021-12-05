@@ -71,7 +71,7 @@ def test_update_verbose():
         with local.cwd(config.config_file.parent):
             result = runner.invoke(cli, ["update", "--verbose"])
             assert result.exit_code == 0
-            assert "5 components updated, 6 files updated" in result.output
+            assert "5 components updated, 7 files updated" in result.output
 
 
 @pytest.mark.check_version

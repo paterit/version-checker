@@ -1,5 +1,7 @@
 from packaging.version import parse
+import yaml
 from updater import components
+from updater.components import Component
 import pytest
 from pathlib import Path
 
@@ -28,6 +30,16 @@ COMP = {
         "component_type": "pypi",
         "component_name": "requests",
         "current_version_tag": "2.20.0",
+    },
+    "python": {
+        "component_type": "docker-image",
+        "repo_name": "library",
+        "current_version_tag": "3.6.6-alpine3.8",
+        "files": ["Dockerfile", "requirements.txt"],
+        "version_pattern": "PYTHON={version}",
+        "files_version_pattern": [
+            {"file": "Dockerfile", "pattern": "version {version}"}
+        ],
     },
 }
 
@@ -194,7 +206,7 @@ def test_error_in_getting_token_for_docker_image_version_info():
         assert "Could not get auth token" in str(excinfo.value)
 
 
-def test_components_to_dict(tmp_path: Path):
+def test_components_to_dict():
 
     components_list = []
     components_list.append(components.factory.get(**COMP["glances"]))
@@ -219,4 +231,28 @@ def test_components_to_dict(tmp_path: Path):
             "next-version": "2.1.2",
         },
     }
-    assert result == components.Component.components_to_dict(components_list)
+    assert result == Component.components_to_dict(components_list)
+
+
+def test_files_version_pattern_to_yaml(tmpdir: Path):
+    components_list = []
+    python_dict = {
+        "python": {
+            "component_type": "docker-image",
+            "component_name": "python",
+            "repo_name": "library",
+            "current_version_tag": "3.6.6-alpine3.8",
+        }
+    }
+    components_list.append(components.factory.get(**python_dict["python"]))
+    comp = components_list[0]
+    comp.files = ["Dockerfile", "requirements.txt"]
+    comp.version_pattern = "PYTHON={version}"
+    comp.files_version_pattern = [
+        {"file": "folder/Dockerfile", "pattern": "version {version}"},
+        {"file": "requirements.txt", "pattern": "version=={version}"},
+    ]
+    file_to_save: Path = Path(tmpdir / "components.yaml")
+    yaml.dump(Component.components_to_dict(components_list), open(file_to_save, "w"))
+    assert "pattern: version {version}" in file_to_save.read_text()
+

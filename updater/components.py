@@ -15,9 +15,12 @@ from rex import rex  # type: ignore
 TVer = Union[LegacyVersion, Version]
 TVerList = List[TVer]
 TFileNameList = List[str]
+TListVersionPattern = Optional[List[Dict[str, str]]]
 
 # dictionary used in components <-> yaml conversion
-TDictComponent = Dict[str, Union[Optional[str], TVer, TFileNameList, List[TVer]]]
+TDictComponent = Dict[
+    str, Union[Optional[str], TVer, TFileNameList, List[TVer], TListVersionPattern]
+]
 
 
 class ComponentType(Enum):
@@ -34,6 +37,7 @@ class Component(metaclass=ABCMeta):
     DEFAULT_REPO: Optional[str] = None
     LATEST_TAGS: List[str] = ["latest"]
     DEFAULT_VERSION_PATTERN: str = "{version}"
+    DEFAULT_FILES_VERSION_PATTERN: TListVersionPattern = None
 
     def __init__(
         self,
@@ -53,7 +57,11 @@ class Component(metaclass=ABCMeta):
         self.files: TFileNameList = self.DEFAULT_FILES
         self.exclude_versions: List[str] = self.DEFAULT_EXLUDE_VERSIONS
         self.version_pattern = self.DEFAULT_VERSION_PATTERN
+        self.files_version_pattern = self.DEFAULT_FILES_VERSION_PATTERN
         super().__init__()
+
+    def __repr__(self) -> str:
+        return f"{self.component_type.value} {self.component_name} {self.current_version_tag}"  # pragma: no cover
 
     def newer_version_exists(self) -> bool:
         if self.current_version_tag in self.LATEST_TAGS:
@@ -67,6 +75,7 @@ class Component(metaclass=ABCMeta):
         pass  # pragma: no cover
 
     def check(self) -> bool:
+        """Check if there is newer version available for this component"""
         if self.current_version_tag not in self.LATEST_TAGS:
             self.version_tags = self.fetch_versions_tags()
 
@@ -98,20 +107,37 @@ class Component(metaclass=ABCMeta):
             ret["exclude-versions"] = self.exclude_versions
         if self.version_pattern != self.DEFAULT_VERSION_PATTERN:
             ret["version-pattern"] = self.version_pattern
+        if self.files_version_pattern != self.DEFAULT_FILES_VERSION_PATTERN:
+            ret["files-version-pattern"] = self.files_version_pattern
         return ret
 
-    def name_version_tag(self, version_tag: str) -> str:
+    def name_version_tag(
+        self, version_tag: str, file_name: Optional[str] = None
+    ) -> str:
         d: Dict[str, str] = {"version": version_tag, "component": self.component_name}
-        return self.version_pattern.format(**d)
-
-    def count_occurence(self, string_to_search: str) -> int:
-        return string_to_search.count(self.name_version_tag(self.current_version_tag))
-
-    def replace(self, string_to_replace: str) -> str:
-        return string_to_replace.replace(
-            self.name_version_tag(self.current_version_tag),
-            self.name_version_tag(self.next_version_tag),
+        file_pattern = (
+            next(
+                x["pattern"]
+                for x in self.files_version_pattern
+                if x["file"] == file_name
+            )
+            if self.files_version_pattern and file_name
+            else None
         )
+        if not file_pattern:
+            return self.version_pattern.format(**d)
+        else:
+            return file_pattern.format(**d)
+
+    def count_occurence(self, string_to_search: str, file_name: str) -> int:
+        return string_to_search.count(
+            self.name_version_tag(self.current_version_tag, file_name)
+        )
+
+    def replace(self, string_to_replace: str, file_name: str) -> str:
+        ver_tag_current = self.name_version_tag(self.current_version_tag, file_name)
+        ver_tag_next = self.name_version_tag(self.next_version_tag, file_name)
+        return string_to_replace.replace(ver_tag_current, ver_tag_next)
 
     def update_files(self, base_dir: Optional[Path], dry_run: bool = False) -> int:
         counter: int = 0
@@ -120,7 +146,7 @@ class Component(metaclass=ABCMeta):
         for file_name in self.files:
             file = Path(base_dir / file_name)
             orig_content: str = file.read_text()
-            if self.count_occurence(orig_content) > 1:
+            if self.count_occurence(orig_content, file_name) > 1:
                 logger.error(
                     f"Too many versions of {self.current_version_tag} occurence in {orig_content}!"
                 )
@@ -129,14 +155,14 @@ class Component(metaclass=ABCMeta):
                 )
 
             if not dry_run:
-                new_content: str = self.replace(orig_content)
+                new_content: str = self.replace(orig_content, file_name)
                 if new_content == orig_content:
                     logger.error(
                         (
                             f"Error in version replacment for {self.component_name}: "
                             f"no replacement done for current_version"
-                            f": {self.name_version_tag(self.current_version_tag)} "
-                            f"and next_version: {self.name_version_tag(self.next_version_tag)} "
+                            f": {self.name_version_tag(self.current_version_tag, file_name)} "
+                            f"and next_version: {self.name_version_tag(self.next_version_tag, file_name)} "
                             f"in file: {str(file)}"
                         )
                     )

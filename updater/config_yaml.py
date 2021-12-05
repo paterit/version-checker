@@ -117,6 +117,9 @@ class Config:
             comp.version_pattern = compd.get(
                 "version-pattern", comp.DEFAULT_VERSION_PATTERN
             )
+            comp.files_version_pattern = compd.get(
+                "files-version-pattern", comp.DEFAULT_FILES_VERSION_PATTERN
+            )
 
     def add_from_requirements(self, req_file: str, req_source: str) -> None:
 
@@ -199,6 +202,7 @@ class Config:
                 )
 
     def update_files(self, dry_run: bool = False) -> Tuple[int, int]:
+        """Update all files for all components. Return number of updated components and number of files updated."""
         file_counter = 0
         components_counter = 0
         for component in self.components:
