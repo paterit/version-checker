@@ -56,11 +56,11 @@ plumbum:
   version-pattern: '{component} = "=={version}"'
 pymongo:
   component-type: pypi
-  current-version: 3.12.1
+  current-version: 3.12.2
   files:
   - Pipfile
   filter: /^\d+\.\d+\.\d+$/
-  next-version: 3.12.1
+  next-version: 3.12.2
   version-pattern: '{component} = "=={version}"'
 python-rex:
   component-type: pypi

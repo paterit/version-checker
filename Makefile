@@ -17,16 +17,14 @@ update:
 self-check:
 	@pipenv run \
 		python check_version.py \
-		--file=components.yaml \
-		--dry-run \
 		check \
 		--verbose
 
 self-update:
 	@pipenv run \
 		python check_version.py \
-		--file=components.yaml \
 		update \
+		--verbose \
 		--test-command="make test-pipenv-install"
 
 self-import-req:
