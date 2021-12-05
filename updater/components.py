@@ -3,6 +3,7 @@ from abc import ABCMeta, abstractmethod
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
+import typing
 
 import requests
 from cachier import cachier  # type: ignore
@@ -156,8 +157,8 @@ class Component(metaclass=ABCMeta):
 
 
 def clear_versions_cache() -> None:
-    fetch_docker_images_versions.clear_cache()  # type: ignore
-    fetch_pypi_versions.clear_cache()  # type: ignore
+    fetch_docker_images_versions.clear_cache()
+    fetch_pypi_versions.clear_cache()
 
 
 @cachier(stale_after=datetime.timedelta(days=3))  # type: ignore[misc]
@@ -209,6 +210,7 @@ class DockerImageComponent(Component):
         self.repo_name = repo_name
         self.version_pattern = self.DEFAULT_VERSION_PATTERN
 
+    @typing.no_type_check
     def fetch_versions_tags(self) -> List[str]:
         return fetch_docker_images_versions(self.repo_name, self.component_name)
 
@@ -231,7 +233,7 @@ class PypiComponent(Component):
         self.version_pattern = self.DEFAULT_VERSION_PATTERN
 
     def fetch_versions_tags(self) -> List[str]:
-        return fetch_pypi_versions(self.component_name)
+        return fetch_pypi_versions(self.component_name)  # type: ignore [no-any-return]
 
 
 class ComponentFactory:
