@@ -37,7 +37,7 @@ This will check versions for all components defined in `components2.yaml`:
 1 components to update
 ```
 
-Here is an example of update script which will do checking and print out update config file without making any changes in your files:
+Here is an example of update script which will do checking and print out updated config file without making any changes in your files:
 
 ```python
 >>> python -m updater --dry-run --print update
@@ -49,7 +49,7 @@ Here is full example of using update command:
 >>> python -m updater update --git-commit --test-command="make test"
 ```
 
-It will, for each defined component in `components.yaml` from local directory:
+It will, for each defined component in `components.yaml` from the local directory:
 
 
 1. Check if there are new versions of your components available
@@ -71,9 +71,9 @@ Install via pypi packages repository:
 >>> python -m pip install updater
 ```
 
-## Config file format
+## YAML Config file format
 
-Example of one component definition:
+Example of components definition:
 
 ```
 # name of the component
