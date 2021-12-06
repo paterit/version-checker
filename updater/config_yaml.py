@@ -1,5 +1,6 @@
 import copy
 import datetime
+from enum import Enum
 from pathlib import Path
 import pprint
 from subprocess import run
@@ -13,6 +14,12 @@ from plumbum import local  # type: ignore
 
 from updater import TPlumbumRunReturn, git_check, plumbum_msg, components
 from updater.components import ComponentType, Component
+
+
+class ImportType(Enum):
+    PIPENV = "pipfile"
+    PYPI = "requirements"
+    POETRY = "poetry"
 
 
 class Config:
@@ -148,12 +155,15 @@ class Config:
                         )
                     )
                     comp = self.components[-1]
-                    if req_source == "pipfile":
+                    if req_source == ImportType.PYPI.value:
                         comp.version_pattern = '{component} = "=={version}"'
                         comp.files = ["Pipfile"]
-                    elif req_source == "requirements":
+                    elif req_source == ImportType.PIPENV.value:
                         comp.version_pattern = "{component}=={version}"
                         comp.files = ["requirements.txt"]
+                    elif req_source == ImportType.POETRY.value:
+                        comp.version_pattern = '{component} = "^{version}"'
+                        comp.files = ["pyproject.toml"]
                     comp.filter = (
                         "/^" + (version.count(".")) * "\\d+\\." + "\\d+$/"
                     )  # due ot backslash being forbidden in f-strings inside curly braces

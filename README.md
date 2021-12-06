@@ -116,6 +116,13 @@ logspout:
    exclude-versions: [v3.2.6]
 ```
 
+## Import python packages to components.yaml
+
+If you want to “copy” python packages to components.yaml from requirements.txt, pipfile (pipenv)
+or Poetry (project.toml) you need use `import-req` command with `--source` set to one of
+`requirements`, `pipfile` or `poetry`. In each cases the `--requirements-file` param needs to point at
+requirements.txt like file but will set proper `version-pattern` and `files`.
+
 ## Usage
 
 ### updater
@@ -207,7 +214,7 @@ Source of the requirement.txt file.  [required]
 
 * **Options**
 
-    requirements|pipfile
+    requirements|pipfile|poetry
 
 
 

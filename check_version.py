@@ -228,7 +228,7 @@ def update(
 @click.option(
     "--source",
     help="Source of the requirement.txt file.",
-    type=click.Choice(["requirements", "pipfile"]),
+    type=click.Choice(["requirements", "pipfile", "poetry"]),
     required=True,
 )  # type: ignore
 @click.option(

@@ -107,6 +107,14 @@ Example of components definition:
       # put here versions which should be skipped
       exclude-versions: [v3.2.6]
 
+Import python packages to components.yaml
+-----------------------------------------
+
+If you want to "copy" python packages to components.yaml from requirements.txt, pipfile (pipenv)
+or Poetry (project.toml) you need use ``import-req`` command with ``--source`` set to one of
+``requirements``, ``pipfile`` or ``poetry``. In each cases the ``--requirements-file`` param needs to point at
+requirements.txt like file but will set proper ``version-pattern`` and ``files``.
+
 .. _tests/test_files/components.yaml: https://github.com/paterit/version-checker/blob/master/tests/test_files/components.yaml
 
 Usage

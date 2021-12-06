@@ -346,8 +346,14 @@ def test_add_requirements_from_pipfile():
         config.add_from_requirements(
             str(config.config_file.parent / "requirements.txt"), "pipfile"
         )
-    assert any(x.component_name == "behave" for x in config.components)
-    assert any(x.component_name == "cachier" for x in config.components)
+    assert any(
+        x.component_name == "behave" and x.version_pattern == "{component}=={version}"
+        for x in config.components
+    )
+    assert any(
+        x.component_name == "cachier" and x.version_pattern == "{component}=={version}"
+        for x in config.components
+    )
     assert not any(x.component_name == "xwrong" for x in config.components)
 
 
@@ -369,4 +375,23 @@ def test_add_requirements_from_requirements_txt():
         )
     assert any(x.component_name == "behave" for x in config.components)
     assert any(x.component_name == "cachier" for x in config.components)
+    assert not any(x.component_name == "xwrong" for x in config.components)
+
+
+def test_add_requirements_from_poetry():
+    config = config_from_copy_of_test_dir()
+    if config.config_file:
+        config.add_from_requirements(
+            str(config.config_file.parent / "requirements.txt"), "poetry"
+        )
+    assert any(
+        x.component_name == "behave"
+        and x.version_pattern == '{component} = "^{version}"'
+        for x in config.components
+    )
+    assert any(
+        x.component_name == "cachier"
+        and x.version_pattern == '{component} = "^{version}"'
+        for x in config.components
+    )
     assert not any(x.component_name == "xwrong" for x in config.components)
