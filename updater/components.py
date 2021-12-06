@@ -176,6 +176,7 @@ class Component(metaclass=ABCMeta):
 
     @staticmethod
     def components_to_dict(components: List["Component"]) -> Dict[str, TDictComponent]:
+        """Return a dict of components with their name as key"""
         return {
             component.component_name: component.to_dict() for component in components
         }
