@@ -1,4 +1,5 @@
-from packaging.version import Version
+from typing import List
+from unittest.mock import Mock, patch
 from updater import components, config_yaml, plumbum_msg, git_check
 from pathlib import Path
 from rex import rex  # type: ignore
@@ -42,6 +43,25 @@ comp = {
     },
 }
 
+mock_versions = {
+    "logspout": ["v3.1.0", "v3.2.0", "v3.3.0"],
+    "Django": ["2.2.24", "2.2.25", "2.3.4"],
+    "requests": ["2.20.0", "2.20.1", "2.20.2"],
+    "wily": ["100.0.0"],
+    "glances": ["v2.11.1", "v2.11.2", "v2.11.3"],
+    "python": ["3.6.6-alpine3.8", "3.6.8-alpine3.8"],
+}
+
+
+def return_mock_list_versions(component_name: str, *args, **kwargs) -> List[str]:
+    return mock_versions[component_name]
+
+
+def return_mock_list_docker_images_versions(
+    repo_name: str, component_name: str, *args, **kwargs
+) -> List[str]:
+    return mock_versions[component_name]
+
 
 def config_from_copy_of_test_dir() -> config_yaml.Config:
     test_dir = Path(tempfile.TemporaryDirectory().name)
@@ -66,6 +86,14 @@ def config_from_copy_of_test_dir_with_dir_param() -> config_yaml.Config:
     return config
 
 
+@patch(
+    "updater.components.fetch_docker_images_versions",
+    new=Mock(side_effect=return_mock_list_docker_images_versions),
+)
+@patch(
+    "updater.components.fetch_pypi_versions",
+    new=Mock(side_effect=return_mock_list_versions),
+)
 def test_get_status_all_to_update():
     config = config_from_copy_of_test_dir()
     components_to_check = config.check()
@@ -76,6 +104,14 @@ def test_get_status_all_to_update():
         assert f"UPDATE_DONE for {comp[0]}" in status
 
 
+@patch(
+    "updater.components.fetch_docker_images_versions",
+    new=Mock(side_effect=return_mock_list_docker_images_versions),
+)
+@patch(
+    "updater.components.fetch_pypi_versions",
+    new=Mock(side_effect=return_mock_list_versions),
+)
 def test_get_status_skip_update():
     config = config_yaml.Config(components_yaml_file=None)
     config.add(components.factory.get(**comp["wily"]))
@@ -85,12 +121,28 @@ def test_get_status_skip_update():
     assert "UPDATE_SKIPPED for wily" in status
 
 
+@patch(
+    "updater.components.fetch_docker_images_versions",
+    new=Mock(side_effect=return_mock_list_docker_images_versions),
+)
+@patch(
+    "updater.components.fetch_pypi_versions",
+    new=Mock(side_effect=return_mock_list_versions),
+)
 def test_load_config_without_yaml_file():
     config = config_yaml.Config(components_yaml_file=None)
     config.add(components.factory.get(**comp["Django"]))
     assert config.count_components_to_update() == 1
 
 
+@patch(
+    "updater.components.fetch_docker_images_versions",
+    new=Mock(side_effect=return_mock_list_docker_images_versions),
+)
+@patch(
+    "updater.components.fetch_pypi_versions",
+    new=Mock(side_effect=return_mock_list_versions),
+)
 def test_save_next_version_to_yaml(tmp_path: Path):
     config_file = tmp_path / "components.yaml"
     config = config_yaml.Config(components_yaml_file=config_file)
@@ -158,6 +210,14 @@ def test_save_files_to_yaml(tmp_path: Path):
     assert "file2" in file_content
 
 
+@patch(
+    "updater.components.fetch_docker_images_versions",
+    new=Mock(side_effect=return_mock_list_docker_images_versions),
+)
+@patch(
+    "updater.components.fetch_pypi_versions",
+    new=Mock(side_effect=return_mock_list_versions),
+)
 def test_use_filter_for_component_to_yaml(tmp_path: Path):
     config_file = tmp_path / "components.yaml"
     config = config_yaml.Config(components_yaml_file=config_file)
@@ -180,6 +240,14 @@ def test_components_list_write_read_yaml_file(tmp_path: Path):
     assert dict1 == dict2
 
 
+@patch(
+    "updater.components.fetch_docker_images_versions",
+    new=Mock(side_effect=return_mock_list_docker_images_versions),
+)
+@patch(
+    "updater.components.fetch_pypi_versions",
+    new=Mock(side_effect=return_mock_list_versions),
+)
 def test_update_components_files():
     config = config_from_copy_of_test_dir()
     assert config.check() == [
@@ -220,6 +288,14 @@ def test_save_config_print_yaml(capfd):
     assert "nicolargo" in captured.out, captured.out
 
 
+@patch(
+    "updater.components.fetch_docker_images_versions",
+    new=Mock(side_effect=return_mock_list_docker_images_versions),
+)
+@patch(
+    "updater.components.fetch_pypi_versions",
+    new=Mock(side_effect=return_mock_list_versions),
+)
 def test_dry_run_update_file():
     config = config_from_copy_of_test_dir()
     config.check()
@@ -248,6 +324,14 @@ def test_dry_run_update_file():
     assert content1 != content2
 
 
+@patch(
+    "updater.components.fetch_docker_images_versions",
+    new=Mock(side_effect=return_mock_list_docker_images_versions),
+)
+@patch(
+    "updater.components.fetch_pypi_versions",
+    new=Mock(side_effect=return_mock_list_versions),
+)
 def test_exclude_versions_param():
     config = config_from_copy_of_test_dir()
     config.check()
@@ -259,6 +343,14 @@ def test_exclude_versions_param():
     )
 
 
+@patch(
+    "updater.components.fetch_docker_images_versions",
+    new=Mock(side_effect=return_mock_list_docker_images_versions),
+)
+@patch(
+    "updater.components.fetch_pypi_versions",
+    new=Mock(side_effect=return_mock_list_versions),
+)
 def test_update_components_files_with_testing_positive(capfd):
     config = config_from_copy_of_test_dir()
     config.test_command = ["make", "test"]
@@ -274,6 +366,14 @@ def test_update_components_files_with_testing_positive(capfd):
     assert captured.out.count("Test OK") == 5, captured.out
 
 
+@patch(
+    "updater.components.fetch_docker_images_versions",
+    new=Mock(side_effect=return_mock_list_docker_images_versions),
+)
+@patch(
+    "updater.components.fetch_pypi_versions",
+    new=Mock(side_effect=return_mock_list_versions),
+)
 def test_update_components_files_with_project_dir_param(capfd):
     config = config_from_copy_of_test_dir_with_dir_param()
     config.test_command = ["make", "test"]
@@ -289,6 +389,14 @@ def test_update_components_files_with_project_dir_param(capfd):
     assert captured.out.count("Test OK") == 5, captured.out
 
 
+@patch(
+    "updater.components.fetch_docker_images_versions",
+    new=Mock(side_effect=return_mock_list_docker_images_versions),
+)
+@patch(
+    "updater.components.fetch_pypi_versions",
+    new=Mock(side_effect=return_mock_list_versions),
+)
 def test_update_components_files_with_testing_negative(capfd):
     config = config_from_copy_of_test_dir()
     config.test_command = ["make", "test-fail"]
@@ -306,6 +414,7 @@ def test_update_components_files_with_testing_negative(capfd):
     assert "Test KO" in captured.out, captured.out
 
 
+@pytest.mark.slow
 def test_commit_changes():
     config = config_from_copy_of_test_dir()
     config.git_commit = True
@@ -329,6 +438,14 @@ def test_commit_changes():
         assert "6\n" in plumbum_msg(ret)
 
 
+@patch(
+    "updater.components.fetch_docker_images_versions",
+    new=Mock(side_effect=return_mock_list_docker_images_versions),
+)
+@patch(
+    "updater.components.fetch_pypi_versions",
+    new=Mock(side_effect=return_mock_list_versions),
+)
 def test_get_versions_info():
     config = config_from_copy_of_test_dir()
     config.check()

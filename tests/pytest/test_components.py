@@ -78,17 +78,20 @@ def check_pypi_versions(component_name: str, version_tag: str):
     ), f"For {component_name} lack of version: {version_tag} in tags {tags}"
 
 
+@pytest.mark.slow
 def test_fetch_docker_images_versions():
     check_docker_images_versions("gliderlabs", "logspout", "v3.1")
     check_docker_images_versions("nicolargo", "glances", "v2.11.1")
     check_docker_images_versions("library", "python", "3.6.6-alpine3.8")
 
 
+@pytest.mark.slow
 def test_fetch_pypi_versions():
     check_pypi_versions("Django", "2.1.2")
     check_pypi_versions("requests", "2.20.0")
 
 
+@pytest.mark.slow
 def test_fetch_docker_images_versions_no_repo():
     tags = components.fetch_docker_images_versions(
         "repo_not_exists", "image_not_exists"
@@ -96,11 +99,13 @@ def test_fetch_docker_images_versions_no_repo():
     assert len(tags) == 0, f"Empty list returned {tags}"
 
 
+@pytest.mark.slow
 def test_fetch_pypi_versions_no_repo():
     tags = components.fetch_pypi_versions("package_not_exists")
     assert len(tags) == 0, f"Empty list returned {tags}"
 
 
+@pytest.mark.slow
 def test_component_checker_newer_version():
     glances_old = {**COMP["glances"], "current_version_tag": "v2.0.0"}
     glances_new = {**COMP["glances"], "current_version_tag": "v100.0.0"}

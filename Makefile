@@ -47,7 +47,7 @@ sbe:
 sbe-wip:
 	pipenv run behave --tags=wip --stop --no-skipped --no-summary --no-logcapture --no-capture-stderr --no-logcapture --logging-level=DEBUG tests/features
 pytest:
-	pipenv run python -m pytest --disable-warnings -vv -x -m "not slow" --exitfirst --showlocals --tb=long 
+	pipenv run python -m pytest --disable-warnings -vv -x --durations=5 -m "not slow" --exitfirst --showlocals --tb=long
 pytest-all:
 	pipenv run python -m pytest --disable-warnings -vv -x
 pytest-wip:
@@ -63,6 +63,9 @@ black:
 test:
 	make pytest
 	make sbe
+test-all:
+	make pytest-all
+	make sbe
 
 test-pipenv-install:
 	pipenv install --skip-lock
@@ -72,7 +75,7 @@ test-pipenv-install:
 pipenv-clean:
 	rm -rf .venv Pipfile.lock
 pipenv-install:
-	pipenv install -d
+	pipenv install --skip-lock -d
 
 package-dist: clean-package-dist
 	pipenv run python setup.py sdist bdist_wheel

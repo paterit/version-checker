@@ -25,6 +25,8 @@ types-setuptools = "*"
 types-pyyaml = "*"
 types-click = "*"
 pytype = "*"
+ipython = "*"
+pytest-mock = "*"
 
 [packages]
 loguru = "==0.5.3"
