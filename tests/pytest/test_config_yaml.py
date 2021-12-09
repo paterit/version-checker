@@ -450,7 +450,7 @@ def test_get_versions_info():
     config = config_from_copy_of_test_dir()
     config.check()
     info = config.get_versions_info()
-    assert "Django - current: 2.2.24 next:" in info[0]
+    assert "Django - current: 2.2.25 next:" in info[0]
     assert "glances - current: v2.11.0 next:" in info[1]
     assert "logspout - current: v3.1 next:" in info[2]
     assert "python - current: 3.6.6-alpine3.8 next:" in info[3]

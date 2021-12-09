@@ -15,7 +15,7 @@ logspout:
   exclude-versions: [v3.2.6]
 Django:
   component-type: pypi
-  current-version: 2.2.24
+  current-version: 2.2.25
   filter: /^\d+\.\d+(\.\d+)?$/
   files: [app/requirements.txt]
 requests:
