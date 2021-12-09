@@ -27,10 +27,10 @@ types-click = "*"
 pytype = "*"
 ipython = "*"
 pytest-mock = "*"
+behave = "==1.2.6"
 
 [packages]
 loguru = "==0.5.3"
-behave = "==1.2.6"
 requests = "==2.26.0"
 packaging = "==21.3"
 plumbum = "==1.7.1"
