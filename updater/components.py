@@ -1,9 +1,9 @@
 import datetime
+import typing
 from abc import ABCMeta, abstractmethod
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
-import typing
 
 import requests
 from cachier import cachier  # type: ignore
@@ -29,7 +29,6 @@ class ComponentType(Enum):
 
 
 class Component(metaclass=ABCMeta):
-
     DEFAULT_PREFIX: Optional[str] = None
     DEFAULT_FILTER: str = "/.*/"
     DEFAULT_FILES: TFileNameList = []
@@ -223,7 +222,6 @@ def fetch_pypi_versions(component_name: str) -> List[str]:
 
 
 class DockerImageComponent(Component):
-
     DEFAULT_VERSION_PATTERN: str = "{component}:{version}"
     TOKEN_URL: str = "https://auth.docker.io/token"
 
@@ -247,7 +245,6 @@ class DockerImageComponent(Component):
 
 
 class PypiComponent(Component):
-
     DEFAULT_VERSION_PATTERN: str = "{component}=={version}"
 
     def __init__(

@@ -67,6 +67,12 @@ test-all:
 	make pytest-all
 	make sbe
 
+venv-with-pipenv:
+	pyenv local 3.11
+	python -m venv .venv
+	python -m pip install --upgrade pip
+	python -m pip install pipenv
+
 test-pipenv-install:
 	pipenv install --skip-lock
 	make pytest
@@ -106,20 +112,32 @@ blackd:
 tox:
 	python -m tox
 
+# to list all available versions: `pyenv install -l`
 pyenv-install:
-	pyenv install 3.8.12
-	pyenv local 3.8.12
+	pyenv install -s 3.8.16
+	pyenv local 3.8.16
+	python -m pip install --upgrade pip
 	python -m pip install tox
-	pyenv install 3.7.12
-	pyenv local 3.7.12
+	pyenv install -s 3.7.16
+	pyenv local 3.7.16
+	python -m pip install --upgrade pip
 	python -m pip install tox
-	pyenv install 3.6.15
-	pyenv local 3.6.15
+	# pyenv install 3.6.15
+	# pyenv local 3.6.15
+	# python -m pip install tox
+	pyenv install -s 3.9.16
+	pyenv local 3.9.16
+	python -m pip install --upgrade pip
 	python -m pip install tox
-	pyenv install 3.9.9
-	pyenv local 3.9.9
+	pyenv install -s 3.10.11
+	pyenv local 3.10.11
+	python -m pip install --upgrade pip
 	python -m pip install tox
-	pyenv local 3.8.12 3.7.12 3.6.15 3.9.9
+	pyenv install -s 3.11.3
+	pyenv local 3.11.3
+	python -m pip install --upgrade pip
+	python -m pip install tox
+	pyenv local 3.8.16 3.7.16 3.9.16 3.10.11 3.11.3
 
 cov:
 	pipenv run python -m coverage run --source=updater -m pytest --disable-warnings -vv -x 
